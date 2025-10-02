@@ -20,7 +20,7 @@ Create crisp YouTube thumbnails right in your browser. Convert SVGs and raster i
 
 ## Quick start
 
-- Open `convert.html` in a modern browser (Chrome, Edge, Firefox, Safari).
+- Open `index.html` in a modern browser (Chrome, Edge, Firefox, Safari).
 - Choose dark/light theme and language from the top bar.
 - Use the cards for SVGs, raster images, or YouTube.
 
@@ -117,6 +117,7 @@ Made by Mr_Simple
 ## License
 
 This project is provided as-is, with no warranty. You are free to use and modify it for personal or educational purposes.
+
 
 
 
