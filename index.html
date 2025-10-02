@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="de" data-theme="light">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>YouTube Thumbnail Converter</title>
+  <meta name="color-scheme" content="light dark" />
+  <!-- <link rel="manifest" href="./manifest.webmanifest" /> -->
+  <script>
+    // Set initial theme ASAP to avoid FOUC
+    (function(){
+      try {
+        const saved = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = saved || (prefersDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (_) {}
+    })();
+  </script>
+  <link rel="stylesheet" href="./style.css"/>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+  <h1 id="title">YouTube Thumbnail Konverter</h1>
+        <p id="subtitle" class="muted">Lade ein SVG und exportiere es als PNG in YouTube‑Größe.</p>
+      </div>
+      <div class="toolbar">
+        <!-- Hidden native select as fallback/assistive tech -->
+        <select id="langSelect" class="visually-hidden">
+          <option value="de">Deutsch</option>
+          <option value="en">English</option>
+        </select>
+        <details id="langDropdown" class="lang-dropdown">
+          <summary><span></span><span id="langCurrent">Deutsch</span><span class="caret">▾</span></summary>
+          <ul class="lang-menu">
+            <li><button id="langDeBtn" type="button">Deutsch</button></li>
+            <li><button id="langEnBtn" type="button">English</button></li>
+          </ul>
+        </details>
+        <button id="themeToggle" class="btn ghost" aria-label="Darstellung umschalten">🌙&nbsp;<span id="themeLabel">Dunkel</span></button>
+      </div>
+    </header>
+
+    <div class="row">
+      <div class="card" style="min-width:280px">
+        <div class="card-header">
+          <h3 id="svgCardTitle" style="margin:0">SVG</h3>
+          <div class="kebab-wrap">
+            <button class="kebab-toggle" type="button" aria-label="Aktionen" aria-expanded="false" data-menu="svgMenu">⋯</button>
+            <ul id="svgMenu" class="kebab-menu" role="menu" aria-label="SVG Aktionen">
+              <li><button id="svgMenuDownload" class="menu-item" type="button" data-action="download">Download PNG</button></li>
+              <li><button id="svgMenuDownload2x" class="menu-item" type="button" data-action="download2x">Download PNG @2x</button></li>
+              <li><button id="svgMenuDownloadAll" class="menu-item" type="button" data-action="downloadAll">Alle exportieren (PNG)</button></li>
+              <li><button id="svgMenuDownloadAll2x" class="menu-item" type="button" data-action="downloadAll2x">Alle exportieren @2x</button></li>
+              <li><button id="svgMenuClear" class="menu-item danger" type="button" data-action="clearList">Liste leeren</button></li>
+            </ul>
+          </div>
+        </div>
+        <div class="dropzone" id="dropzone" aria-label="SVG hier ablegen oder über Datei auswählen">
+          <input class="visually-hidden" type="file" id="file" accept=".svg,image/svg+xml" multiple/>
+          <div class="picker">
+            <button id="openPicker" class="pill" type="button" aria-controls="file">📁 Dateien auswählen</button>
+            <span id="selectedInfo" class="meta">Keine ausgewählt</span>
+          </div>
+          <p class="muted" style="margin:8px 6px 0">Oder per Drag & Drop hier ablegen.</p>
+        </div>
+        <div class="controls actions">
+          <button class="btn" id="download" type="button">Download PNG</button>
+          <button class="btn secondary" id="download2x" type="button">Download PNG @2x (2560×1440)</button>
+        </div>
+        <div class="controls actions">
+          <button class="btn" id="downloadAll" type="button">Alle exportieren (PNG)</button>
+          <button class="btn secondary" id="downloadAll2x" type="button">Alle exportieren @2x</button>
+        </div>
+        <div class="controls actions">
+          <button class="btn danger" id="clearList" type="button">Liste leeren</button>
+        </div>
+        <p id="status" class="muted status" aria-live="polite">Kein SVG geladen.</p>
+        <ul id="fileList" class="file-list" aria-label="Geladene Dateien"></ul>
+      </div>
+
+      <div class="card grow">
+  <h3 id="previewTitle" style="margin-top:0">Vorschau</h3>
+        <div class="preview-wrap">
+          <canvas id="canvas" width="1280" height="720"></canvas>
+          <div id="dimBadge" class="dim-badge" aria-live="polite">1280×720</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Raster Converter -->
+    <div class="row" style="margin-top:20px">
+      <div class="card" style="min-width:280px;flex:1 1 340px">
+        <div class="card-header">
+          <h3 id="rCardTitle" style="margin:0">JPG/PNG Konverter</h3>
+          <div class="kebab-wrap">
+            <button class="kebab-toggle" type="button" aria-label="Aktionen" aria-expanded="false" data-menu="rMenu">⋯</button>
+            <ul id="rMenu" class="kebab-menu" role="menu" aria-label="Raster Aktionen">
+              <li><button id="rMenuSinglePNG" class="menu-item" type="button" data-action="rDownloadPNG">Zu PNG (einzeln)</button></li>
+              <li><button id="rMenuSingleJPG" class="menu-item" type="button" data-action="rDownloadJPG">Zu JPG (einzeln)</button></li>
+              <li><button id="rMenuAllPNG" class="menu-item" type="button" data-action="rDownloadAllPNG">Alle → PNG</button></li>
+              <li><button id="rMenuAllJPG" class="menu-item" type="button" data-action="rDownloadAllJPG">Alle → JPG</button></li>
+              <li><button id="rMenuClear" class="menu-item danger" type="button" data-action="rClearList">Liste leeren</button></li>
+            </ul>
+          </div>
+        </div>
+        <div class="dropzone" id="rDropzone" aria-label="Bilder hier ablegen oder über Datei auswählen">
+          <input class="visually-hidden" type="file" id="rFile" accept=".jpg,.jpeg,.png,image/jpeg,image/png" multiple/>
+          <div class="picker">
+            <button id="openRPicker" class="pill" type="button" aria-controls="rFile">📁 Bilder auswählen</button>
+            <span id="rSelectedInfo" class="meta">Keine ausgewählt</span>
+          </div>
+          <p class="muted" style="margin:8px 6px 0">Oder per Drag & Drop hier ablegen.</p>
+        </div>
+
+        <div class="controls actions">
+          <button class="btn" id="rDownloadPNG" type="button">Zu PNG (einzeln)</button>
+          <button class="btn secondary" id="rDownloadJPG" type="button">Zu JPG (einzeln)</button>
+        </div>
+        <div class="controls actions">
+          <button class="btn" id="rDownloadAllPNG" type="button">Alle → PNG</button>
+          <button class="btn secondary" id="rDownloadAllJPG" type="button">Alle → JPG</button>
+        </div>
+
+        <div class="controls">
+          <input id="urlInput" class="input" type="url" placeholder="https://... (PNG, JPG)"/>
+          <button class="btn" id="loadFromUrl" type="button">Bild von URL laden</button>
+        </div>
+
+        <div class="controls actions">
+          <button class="btn danger" id="rClearList" type="button">Liste leeren</button>
+        </div>
+
+        <p id="rStatus" class="muted status" aria-live="polite">Keine Bilder geladen.</p>
+        <ul id="rFileList" class="file-list" aria-label="Geladene Bilder"></ul>
+      </div>
+      <div class="card" style="min-width:280px;flex:1 1 340px">
+        <div class="card-header">
+          <h3 id="ytCardTitle" style="margin:0">YouTube Thumbnails</h3>
+          <div class="kebab-wrap">
+            <button class="kebab-toggle" type="button" aria-label="Aktionen" aria-expanded="false" data-menu="ytMenu">⋯</button>
+            <ul id="ytMenu" class="kebab-menu" role="menu" aria-label="YouTube Aktionen">
+              <li><button id="ytMenuLoadBtn" class="menu-item" type="button" data-action="ytFetch">Laden</button></li>
+              <li><button id="ytMenuAllBtn" class="menu-item" type="button" data-action="ytDownloadAll">Alle herunterladen</button></li>
+            </ul>
+          </div>
+        </div>
+        <div class="controls">
+          <input id="ytUrl" class="input" type="url" placeholder="https://www.youtube.com/watch?v=... oder youtu.be/..."/>
+          <button class="btn" id="ytFetch" type="button">Laden</button>
+        </div>
+        <p id="ytStatus" class="muted status" aria-live="polite">Füge einen YouTube-Link ein, um Vorschaubilder zu laden.</p>
+        <ul id="ytList" class="file-list" aria-label="YouTube Thumbnails"></ul>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="row" style="margin-top:20px">
+      <div class="card" style="min-width:280px;flex:1 1 700px">
+        <h3 id="settingsTitle" style="margin-top:0">Einstellungen</h3>
+        <div class="settings-grid">
+          <label class="field">
+            <span id="checkerLabel" class="muted">Schachbrett (Transparenz)</span>
+            <label class="switch"><input type="checkbox" id="optChecker" checked> <span id="checkerToggleLabel">anzeigen</span></label>
+          </label>
+          <label class="field">
+            <span id="presetLabel" class="muted">Preset (Größe)</span>
+            <select id="optPreset" class="input">
+              <option id="optOriginal" value="original">Original</option>
+              <option id="opt1280" value="1280x720">1280×720</option>
+              <option id="opt1920" value="1920x1080">1920×1080</option>
+              <option id="opt1080s" value="1080x1080">1080×1080</option>
+              <option id="opt1080p" value="1080x1920">1080×1920</option>
+            </select>
+          </label>
+          <label class="field">
+            <span id="resizeLabel" class="muted">Resize-Modus</span>
+            <select id="optMode" class="input">
+              <option value="contain">Contain</option>
+              <option value="cover">Cover</option>
+              <option value="stretch">Stretch</option>
+            </select>
+          </label>
+          <label class="field">
+            <span id="jpgBgLabel" class="muted">JPG Hintergrund</span>
+            <input id="optJpgBg" type="color" value="#ffffff"/>
+          </label>
+          <label class="field">
+            <span id="previewBgLabel" class="muted">Vorschau Hintergrund anwenden</span>
+            <label class="switch"><input type="checkbox" id="optPreviewBg" checked> <span id="previewBgToggle">verwenden</span></label>
+          </label>
+          <label class="field">
+            <span id="jpgQLabel" class="muted">JPG Qualität</span>
+            <input id="optJpgQ" type="range" min="60" max="100" step="1" value="92"/>
+          </label>
+          <label class="field">
+            <span id="workerLabel" class="muted">Batch mit Web Worker</span>
+            <label class="switch"><input type="checkbox" id="optWorker"> <span id="workerToggleLabel">aktivieren</span></label>
+          </label>
+        </div>
+        <p id="saveHint" class="muted" style="margin-top:8px">Änderungen werden gespeichert.</p>
+      </div>
+    </div>
+
+    <!-- Export History -->
+    <div class="row" style="margin-top:20px">
+      <div class="card" style="min-width:280px;flex:1 1 700px">
+        <h3 id="exportsTitle" style="margin-top:0">Exporte</h3>
+  <p id="exportsHint" class="muted">Hier siehst du deine zuletzt exportierten Bilder (lokal gespeichert).</p>
+        <div class="controls" style="margin-top:0;align-items:center">
+          <label class="field" style="min-width:160px">
+            <span class="muted">Filter</span>
+            <select id="historyFilter" class="input">
+              <option value="">Alle</option>
+              <option value="svg->png">SVG → PNG</option>
+              <option value="img->png">IMG → PNG</option>
+              <option value="img->jpg">IMG → JPG</option>
+            </select>
+          </label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button id="prevPage" type="button" class="btn ghost">←</button>
+            <span id="pageInfo" class="muted">1 / 1</span>
+            <button id="nextPage" type="button" class="btn ghost">→</button>
+          </div>
+          <span id="statsSummary" class="muted" style="margin-left:auto">–</span>
+        </div>
+        <ul id="exportList" class="file-list" aria-label="Exportverlaufs-Liste"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
