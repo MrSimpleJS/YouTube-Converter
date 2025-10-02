@@ -1,11 +1,11 @@
 # YouTube Thumbnail Converter
 
+Create crisp YouTube thumbnails right in your browser. Convert SVGs and raster images (PNG/JPG), fetch thumbnails from YouTube links, and keep a local history — all on-device and privacy‑friendly.
+
 ## Live demo
 
-- URL: [https://MrSimpleJS.github.io/YouTube-Converter/](https://you-tube-converter-zeta.vercel.app/)
-
-
-A fast, privacy-friendly web app to preview and export images to YouTube thumbnail sizes. Convert SVGs and raster images (PNG/JPG), load YouTube thumbnails by URL, and keep a local export history—all on-device.
+- URL: https://you-tube-converter-zeta.vercel.app/
+	- Mirror/read-only: https://MrSimpleJS.github.io/YouTube-Converter/
 
 ## Highlights
 
@@ -111,10 +111,13 @@ app.js         # App logic (i18n, preview, export, history)
 README.md      # This file
 ```
 
+## Credits
+
+Made by Mr_Simple
+
 ## License
 
 This project is provided as-is, with no warranty. You are free to use and modify it for personal or educational purposes.
 
 Alternatively, double-click `convert.html` to open it directly (some features like URL loading may be limited by browser CORS when using the file:// protocol).
-
 

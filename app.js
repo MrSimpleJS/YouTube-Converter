@@ -1084,6 +1084,8 @@ if (document.readyState === 'loading'){
     hookSettings();
     rerenderPreview();
       renderHistory();
+    // Set dynamic year in footer
+    try{ const yEl=document.getElementById('year'); if (yEl) yEl.textContent=String(new Date().getFullYear()); }catch(_){ }
     // Close language dropdown when clicking outside or pressing Escape
     document.addEventListener('pointerdown', (ev)=>{
       if (langDropdown && langDropdown.open && !langDropdown.contains(ev.target)){
@@ -1100,6 +1102,8 @@ if (document.readyState === 'loading'){
   hookSettings();
   rerenderPreview();
     renderHistory();
+  // Set dynamic year in footer (eager path)
+  try{ const yEl=document.getElementById('year'); if (yEl) yEl.textContent=String(new Date().getFullYear()); }catch(_){ }
   document.addEventListener('pointerdown', (ev)=>{
     if (langDropdown && langDropdown.open && !langDropdown.contains(ev.target)){
       langDropdown.open = false;
