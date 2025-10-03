@@ -39,6 +39,10 @@
             <li><button id="langEnBtn" type="button">English</button></li>
           </ul>
         </details>
+        <!-- <button id="signInBtn" class="btn ghost">Anmelden</button> -->
+        <button id="helpBtn" class="btn ghost" aria-label="Hilfe">❓ Hilfe</button>
+        <span id="globalStats" class="pill stats-pill" aria-live="polite" title="Global stats">Images: 0 • Downloads: 0</span>
+        <!-- User Switcher temporarily removed -->
         <button id="themeToggle" class="btn ghost" aria-label="Darstellung umschalten">🌙&nbsp;<span id="themeLabel">Dunkel</span></button>
       </div>
     </header>
@@ -200,7 +204,12 @@
             <label class="switch"><input type="checkbox" id="optWorker"> <span id="workerToggleLabel">aktivieren</span></label>
           </label>
         </div>
-        <p id="saveHint" class="muted" style="margin-top:8px">Änderungen werden gespeichert.</p>
+  <p id="saveHint" class="muted" style="margin-top:8px">Änderungen werden gespeichert.</p>
+        <div class="settings-footer">
+          <button id="tourResetBtn" type="button" class="btn ghost tiny left">Tour zurücksetzen</button>
+          <span id="privacyState" class="muted state-chip" title="Datenschutz">Verlaufsspeicherung: unbekannt</span>
+          <button id="privacyChange" type="button" class="btn ghost tiny">Einstellung ändern</button>
+        </div>
       </div>
     </div>
 
@@ -229,10 +238,134 @@
         <ul id="exportList" class="file-list" aria-label="Exportverlaufs-Liste"></ul>
       </div>
     </div>
+
+    <!-- Admin Control Panel (client-only) -->
+    <div class="row" style="margin-top:20px">
+      <div id="adminPanel" class="card" style="display:none;min-width:280px;flex:1 1 700px">
+        <h3 id="adminTitle" style="margin-top:0">Admin Bereich</h3>
+        <div class="controls" style="margin-top:0;align-items:center;flex-wrap:wrap">
+          <label class="field" style="min-width:160px">
+            <span class="muted" id="auditUserLabel">Benutzer</span>
+            <select id="auditUserFilter" class="input">
+              <option value="">Alle Benutzer</option>
+            </select>
+          </label>
+          <label class="field" style="min-width:160px">
+            <span class="muted" id="auditActionLabel">Aktion</span>
+            <select id="auditActionFilter" class="input">
+              <option value="">Alle Aktionen</option>
+            </select>
+          </label>
+          <label class="field" style="min-width:160px">
+            <span class="muted" id="auditFromLabel">Von</span>
+            <input id="auditFrom" type="date" class="input" />
+          </label>
+          <label class="field" style="min-width:160px">
+            <span class="muted" id="auditToLabel">Bis</span>
+            <input id="auditTo" type="date" class="input" />
+          </label>
+          <div style="display:flex;gap:8px;align-items:center;margin-left:auto">
+            <button id="auditExportBtn" type="button" class="btn secondary">Export JSON</button>
+            <button id="auditClearBtn" type="button" class="btn danger">Log leeren</button>
+          </div>
+        </div>
+        <div class="controls" style="margin-top:0;align-items:center">
+          <div style="display:flex;gap:8px;align-items:center">
+            <button id="auditPrev" type="button" class="btn ghost">←</button>
+            <span id="auditPageInfo" class="muted">1 / 1</span>
+            <button id="auditNext" type="button" class="btn ghost">→</button>
+          </div>
+          <span id="auditStats" class="muted" style="margin-left:auto">–</span>
+        </div>
+        <!-- Audit mini charts -->
+        <div id="auditCharts" class="audit-charts" style="display:none">
+          <div class="mini-card">
+            <h4 id="chartTopEventsTitle" style="margin:0 0 6px">Top-Aktionen</h4>
+            <div id="chartTopEvents" class="bars"></div>
+          </div>
+          <div class="mini-card">
+            <h4 id="chartActivityTitle" style="margin:0 0 6px">Aktivität (7 Tage)</h4>
+            <div id="chartActivity7" class="columns" aria-label="Aktivität letzte 7 Tage"></div>
+          </div>
+          <div class="mini-card">
+            <h4 id="chartUsersTitle" style="margin:0 0 6px">Benutzer-Verteilung</h4>
+            <div id="chartUsersDist" class="bars"></div>
+          </div>
+        </div>
+        <ul id="auditList" class="file-list" aria-label="Admin Audit Log"></ul>
+      </div>
+    </div>
   </div>
   <footer class="site-footer" aria-label="Site credits">
     <span class="credit-text">Made with <span aria-hidden="true" class="heart">❤</span><span class="sr-only">love</span> by <a href="https://github.com/MrSimpleJS" target="_blank" rel="noopener noreferrer">Mr_Simple</a> • <span id="year"></span></span>
   </footer>
+  <!-- Auth Overlay (client-only) -->
+  <div id="authOverlay" class="auth-overlay" role="dialog" aria-modal="true" hidden>
+    <div class="auth-modal card" role="document">
+      <h3 id="authTitle" style="margin-top:0">Anmelden</h3>
+      <div class="field">
+        <span id="authNameLabel" class="muted">Name</span>
+        <input id="authName" class="input" type="text" autocomplete="username"/>
+      </div>
+      <div class="field">
+        <span id="authPasswordLabel" class="muted">Passwort</span>
+        <input id="authPassword" class="input" type="password" autocomplete="current-password"/>
+      </div>
+      <div class="controls" style="margin-top:0;align-items:center;justify-content:space-between">
+        <label class="switch"><input type="checkbox" id="authRemember"> <span id="authRememberLabel">Angemeldet bleiben</span></label>
+        <button id="authForgot" type="button" class="btn ghost">Passwort vergessen?</button>
+      </div>
+      <div id="authConfirmWrap" class="field" style="display:none">
+        <span id="authConfirmLabel" class="muted">Passwort bestätigen</span>
+        <input id="authConfirm" class="input" type="password" autocomplete="new-password"/>
+      </div>
+      <div id="authSecWrap" class="field" style="display:none">
+        <span id="authSecQLabel" class="muted">Sicherheitsfrage</span>
+        <input id="authSecQ" class="input" type="text" placeholder="z. B. Lieblingsfarbe"/>
+      </div>
+      <div id="authSecAnsWrap" class="field" style="display:none">
+        <span id="authSecALabel" class="muted">Antwort</span>
+        <input id="authSecA" class="input" type="text"/>
+      </div>
+      <p id="authStatus" class="muted status" aria-live="polite"></p>
+      <div class="controls">
+        <button id="authSubmit" type="button" class="btn">Anmelden</button>
+        <button id="authToggleMode" type="button" class="btn ghost">Neu registrieren</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Privacy Consent Overlay -->
+  <div id="consentOverlay" class="auth-overlay" role="dialog" aria-modal="true" hidden>
+    <div class="auth-modal card consent-modal" role="document">
+      <div class="modal-header">
+        <div class="consent-icon" aria-hidden="true">🔒</div>
+        <h3 id="privacyTitle" class="modal-title">Datenschutz</h3>
+      </div>
+      <p id="privacyBody" class="modal-body muted">Dürfen wir Ihre Exporte lokal (auf diesem Gerät) speichern, um die Verlaufsliste anzuzeigen?</p>
+      <div class="modal-actions">
+        <button id="privacyNo" type="button" class="btn ghost">Nein, nicht speichern</button>
+        <button id="privacyYes" type="button" class="btn">Ja, lokal speichern</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Guided Tour (client-only) -->
+  <div id="tourHighlight" class="tour-highlight" hidden></div>
+  <div id="tourOverlay" class="tour-overlay" role="dialog" aria-modal="true" hidden>
+    <div id="tourTooltip" class="tour-tooltip card" role="document">
+      <h4 id="tourStepTitle" style="margin:0 0 6px">Willkommen</h4>
+  <p id="tourStepBody" class="muted" style="margin:0 0 10px">Kurze Tour durch die wichtigsten Funktionen.</p>
+  <div id="tourStepCount" class="muted" style="font-size:.85rem;margin:0 0 8px">1 / 6</div>
+      <div class="controls" style="margin-top:6px;justify-content:space-between">
+        <button id="tourSkip" class="btn ghost" type="button">Überspringen</button>
+        <div style="display:flex;gap:6px">
+          <button id="tourBack" class="btn ghost" type="button">Zurück</button>
+          <button id="tourNext" class="btn" type="button">Weiter</button>
+        </div>
+      </div>
+    </div>
+  </div>
   <script src="./app.js"></script>
 </body>
 </html>
