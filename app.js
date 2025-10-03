@@ -1294,8 +1294,8 @@ function updatePrivacyState(){
   }
   if (privacyChangeBtn){ privacyChangeBtn.textContent = dict.privacyChange || 'Change preference'; }
 }
-if (privacyYesBtn) privacyYesBtn.addEventListener('click', ()=>{ try{ localStorage.setItem(CONSENT_KEY,'yes'); }catch(_){ } hideConsent(); updatePrivacyState(); renderHistory(); });
-if (privacyNoBtn) privacyNoBtn.addEventListener('click', ()=>{ try{ localStorage.setItem(CONSENT_KEY,'no'); }catch(_){ } hideConsent(); updatePrivacyState(); renderHistory(); });
+if (privacyYesBtn) privacyYesBtn.addEventListener('click', ()=>{ try{ localStorage.setItem(CONSENT_KEY,'yes'); }catch(_){ } hideConsent(); updatePrivacyState(); renderHistory(); try{ startTour(false); }catch(_){ } });
+if (privacyNoBtn) privacyNoBtn.addEventListener('click', ()=>{ try{ localStorage.setItem(CONSENT_KEY,'no'); }catch(_){ } hideConsent(); updatePrivacyState(); renderHistory(); try{ startTour(false); }catch(_){ } });
 if (privacyChangeBtn) privacyChangeBtn.addEventListener('click', ()=>{ showConsent(); });
 
 // Export current canvas as PNG or JPG with settings
@@ -1927,13 +1927,14 @@ if (document.readyState === 'loading'){
       renderHistory();
     renderAudit();
     try{ updateGlobalStats(); }catch(_){ }
-  // Ask for privacy consent on first visit
-  try{ if (!hasAnsweredConsent()) showConsent(); }catch(_){ }
+  // Ask for privacy consent on first visit; delay tour until answered
+  let consentAnswered = true;
+  try{ consentAnswered = hasAnsweredConsent(); if (!consentAnswered) showConsent(); }catch(_){ }
   try{ updatePrivacyState(); }catch(_){ }
     // Set dynamic year in footer
     try{ const yEl=document.getElementById('year'); if (yEl) yEl.textContent=String(new Date().getFullYear()); }catch(_){ }
-  // Auto-start guided tour (once)
-  startTour(false);
+  // Auto-start guided tour (once) only after consent
+  if (consentAnswered) startTour(false);
     // Close language dropdown when clicking outside or pressing Escape
     document.addEventListener('pointerdown', (ev)=>{
       if (langDropdown && langDropdown.open && !langDropdown.contains(ev.target)){
@@ -1956,13 +1957,14 @@ if (document.readyState === 'loading'){
     renderHistory();
   renderAudit();
   try{ updateGlobalStats(); }catch(_){ }
-  // Ask for privacy consent on first visit (eager path)
-  try{ if (!hasAnsweredConsent()) showConsent(); }catch(_){ }
+  // Ask for privacy consent on first visit (eager path); delay tour until answered
+  let consentAnswered2 = true;
+  try{ consentAnswered2 = hasAnsweredConsent(); if (!consentAnswered2) showConsent(); }catch(_){ }
   try{ updatePrivacyState(); }catch(_){ }
   // Set dynamic year in footer (eager path)
   try{ const yEl=document.getElementById('year'); if (yEl) yEl.textContent=String(new Date().getFullYear()); }catch(_){ }
-  // Auto-start guided tour (once) in eager path
-  startTour(false);
+  // Auto-start guided tour (once) in eager path only after consent
+  if (consentAnswered2) startTour(false);
   document.addEventListener('pointerdown', (ev)=>{
     if (langDropdown && langDropdown.open && !langDropdown.contains(ev.target)){
       langDropdown.open = false;
