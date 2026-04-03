@@ -21,12 +21,12 @@
 </head>
 <body>
   <div class="container">
-    <header>
-      <div>
+    <header class="hero">
+      <div class="hero-copy">
   <h1 id="title">YouTube Thumbnail Konverter</h1>
         <p id="subtitle" class="muted">Lade ein SVG und exportiere es als PNG in YouTube‑Größe.</p>
       </div>
-      <div class="toolbar">
+      <div class="toolbar hero-toolbar">
         <!-- Hidden native select as fallback/assistive tech -->
         <select id="langSelect" class="visually-hidden">
           <option value="de">Deutsch</option>
@@ -48,7 +48,7 @@
     </header>
 
     <div class="row">
-      <div class="card" style="min-width:280px">
+      <div class="card feature-card" style="min-width:280px">
         <div class="card-header">
           <h3 id="svgCardTitle" style="margin:0">SVG</h3>
           <div class="kebab-wrap">
@@ -68,7 +68,7 @@
             <button id="openPicker" class="pill" type="button" aria-controls="file">📁 Dateien auswählen</button>
             <span id="selectedInfo" class="meta">Keine ausgewählt</span>
           </div>
-          <p class="muted" style="margin:8px 6px 0">Oder per Drag & Drop hier ablegen.</p>
+          <p id="svgDropHint" class="muted" style="margin:8px 6px 0">Oder per Drag & Drop hier ablegen.</p>
         </div>
         <div class="controls actions">
           <button class="btn" id="download" type="button">Download PNG</button>
@@ -85,7 +85,7 @@
         <ul id="fileList" class="file-list" aria-label="Geladene Dateien"></ul>
       </div>
 
-      <div class="card grow">
+      <div class="card grow preview-card">
   <h3 id="previewTitle" style="margin-top:0">Vorschau</h3>
         <div class="preview-wrap">
           <canvas id="canvas" width="1280" height="720"></canvas>
@@ -96,7 +96,7 @@
 
     <!-- Raster Converter -->
     <div class="row" style="margin-top:20px">
-      <div class="card" style="min-width:280px;flex:1 1 340px">
+      <div class="card feature-card" style="min-width:280px;flex:1 1 340px">
         <div class="card-header">
           <h3 id="rCardTitle" style="margin:0">JPG/PNG Konverter</h3>
           <div class="kebab-wrap">
@@ -116,7 +116,7 @@
             <button id="openRPicker" class="pill" type="button" aria-controls="rFile">📁 Bilder auswählen</button>
             <span id="rSelectedInfo" class="meta">Keine ausgewählt</span>
           </div>
-          <p class="muted" style="margin:8px 6px 0">Oder per Drag & Drop hier ablegen.</p>
+          <p id="rDropHint" class="muted" style="margin:8px 6px 0">Oder per Drag & Drop hier ablegen.</p>
         </div>
 
         <div class="controls actions">
@@ -140,7 +140,7 @@
         <p id="rStatus" class="muted status" aria-live="polite">Keine Bilder geladen.</p>
         <ul id="rFileList" class="file-list" aria-label="Geladene Bilder"></ul>
       </div>
-      <div class="card" style="min-width:280px;flex:1 1 340px">
+      <div class="card feature-card youtube-card" style="min-width:280px;flex:1 1 340px">
         <div class="card-header">
           <h3 id="ytCardTitle" style="margin:0">YouTube Thumbnails</h3>
           <div class="kebab-wrap">
@@ -162,7 +162,7 @@
 
     <!-- Settings -->
     <div class="row" style="margin-top:20px">
-      <div class="card" style="min-width:280px;flex:1 1 700px">
+      <div class="card settings-card" style="min-width:280px;flex:1 1 700px">
         <h3 id="settingsTitle" style="margin-top:0">Einstellungen</h3>
         <div class="settings-grid">
           <label class="field">
@@ -192,6 +192,10 @@
             <input id="optJpgBg" type="color" value="#ffffff"/>
           </label>
           <label class="field">
+            <span id="transparentLabel" class="muted">Bild transparent machen</span>
+            <label class="switch"><input type="checkbox" id="optTransparent"> <span id="transparentToggleLabel">aktivieren</span></label>
+          </label>
+          <label class="field">
             <span id="previewBgLabel" class="muted">Vorschau Hintergrund anwenden</span>
             <label class="switch"><input type="checkbox" id="optPreviewBg" checked> <span id="previewBgToggle">verwenden</span></label>
           </label>
@@ -215,7 +219,7 @@
 
     <!-- Export History -->
     <div class="row" style="margin-top:20px">
-      <div class="card" style="min-width:280px;flex:1 1 700px">
+      <div class="card history-card" style="min-width:280px;flex:1 1 700px">
         <h3 id="exportsTitle" style="margin-top:0">Exporte</h3>
   <p id="exportsHint" class="muted">Hier siehst du deine zuletzt exportierten Bilder (lokal gespeichert).</p>
         <div class="controls" style="margin-top:0;align-items:center">

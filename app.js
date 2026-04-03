@@ -349,9 +349,17 @@ const t = {
     settingsTitle: 'Einstellungen',
     checkerLabel: 'Schachbrett (Transparenz)',
     checkerToggleLabel: 'anzeigen',
+    presetOriginal: 'Original',
+    presetYoutubeThumb: 'YouTube Thumbnail (1280—720)',
+    presetYoutubeHD: 'YouTube HD (1920—1080)',
+    presetInstagramPost: 'Instagram Post (1080—1080)',
+    presetInstagramStory: 'Instagram Story (1080—1920)',
+    presetTikTokCover: 'TikTok Cover (1080—1920)',
     presetLabel: 'Preset (Größe)',
     resizeLabel: 'Resize-Modus',
     jpgBgLabel: 'JPG Hintergrund',
+    transparentLabel: 'Bild transparent machen',
+    transparentToggleLabel: 'aktivieren',
     previewBgLabel: 'Vorschau Hintergrund anwenden',
     previewBgToggle: 'verwenden',
     jpgQLabel: 'JPG Qualität',
@@ -416,6 +424,7 @@ const t = {
     rDownloadAllJPG: 'Alle → JPG',
     loadFromUrlBtn: 'Bild von URL laden',
     rClearListBtn: 'Liste leeren',
+    dropHint: 'Oder per Drag & Drop hier ablegen.',
     exportsTitle: 'Exporte',
     exportsHint: 'Hier siehst du deine zuletzt exportierten Bilder (lokal gespeichert).',
     ytCardTitle: 'YouTube Thumbnails',
@@ -455,6 +464,7 @@ const t = {
     historyTypeLabel: { 'svg->png': 'SVG → PNG', 'img->png': 'IMG → PNG', 'img->jpg': 'IMG → JPG' },
     // YouTube statuses
     ytInvalid: 'Ungültiger YouTube-Link oder Video-ID.',
+    ytPlaylistIgnored: 'Playlist-Link erkannt. Bitte einen direkten Video-Link verwenden.',
     ytLoaded: 'Thumbnails geladen.',
     ytPreviewLoaded: 'Vorschau geladen.',
     ytPreviewFailed: 'Vorschau fehlgeschlagen.',
@@ -505,9 +515,17 @@ const t = {
     settingsTitle: 'Settings',
     checkerLabel: 'Checkerboard (transparency)',
     checkerToggleLabel: 'show',
+    presetOriginal: 'Original',
+    presetYoutubeThumb: 'YouTube Thumbnail (1280Ã—720)',
+    presetYoutubeHD: 'YouTube HD (1920Ã—1080)',
+    presetInstagramPost: 'Instagram Post (1080Ã—1080)',
+    presetInstagramStory: 'Instagram Story (1080Ã—1920)',
+    presetTikTokCover: 'TikTok Cover (1080Ã—1920)',
     presetLabel: 'Preset (size)',
     resizeLabel: 'Resize mode',
     jpgBgLabel: 'JPG background',
+    transparentLabel: 'Make image transparent',
+    transparentToggleLabel: 'enable',
     previewBgLabel: 'Apply preview background',
     previewBgToggle: 'use',
     jpgQLabel: 'JPG quality',
@@ -572,6 +590,7 @@ const t = {
     rDownloadAllJPG: 'All → JPG',
     loadFromUrlBtn: 'Load from URL',
     rClearListBtn: 'Clear list',
+    dropHint: 'Or drag & drop files here.',
     exportsTitle: 'Exports',
     exportsHint: 'Your most recent exported images (stored locally).',
     ytCardTitle: 'YouTube Thumbnails',
@@ -611,6 +630,7 @@ const t = {
     historyTypeLabel: { 'svg->png': 'SVG → PNG', 'img->png': 'IMG → PNG', 'img->jpg': 'IMG → JPG' },
     // YouTube statuses
     ytInvalid: 'Invalid YouTube link or video ID.',
+    ytPlaylistIgnored: 'Playlist link detected. Please use a direct video link.',
     ytLoaded: 'Thumbnails loaded.',
     ytPreviewLoaded: 'Preview loaded.',
     ytPreviewFailed: 'Preview failed.',
@@ -674,8 +694,33 @@ function applyLang(lang){
   setText('checkerLabel', dict.checkerLabel);
   setText('checkerToggleLabel', dict.checkerToggleLabel);
   setText('presetLabel', dict.presetLabel);
+  const presetOptions = [
+    ['optOriginal', 'original', dict.presetOriginal || 'Original'],
+    ['opt1280', 'youtube-thumb', dict.presetYoutubeThumb || 'YouTube Thumbnail (1280x720)'],
+    ['opt1920', 'youtube-hd', dict.presetYoutubeHD || 'YouTube HD (1920x1080)'],
+    ['opt1080s', 'instagram-post', dict.presetInstagramPost || 'Instagram Post (1080x1080)'],
+    ['opt1080p', 'instagram-story', dict.presetInstagramStory || 'Instagram Story (1080x1920)'],
+  ];
+  presetOptions.forEach(([id, value, label])=>{
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = value;
+    el.textContent = label;
+  });
+  if (optPreset && !document.getElementById('optPresetTikTok')){
+    const tiktokOpt = document.createElement('option');
+    tiktokOpt.id = 'optPresetTikTok';
+    tiktokOpt.value = 'tiktok-cover';
+    tiktokOpt.textContent = dict.presetTikTokCover || 'TikTok Cover (1080x1920)';
+    optPreset.appendChild(tiktokOpt);
+  } else {
+    setText('optPresetTikTok', dict.presetTikTokCover || 'TikTok Cover (1080x1920)');
+  }
+  if (optPreset) optPreset.value = normalizePresetValue(settings.preset);
   setText('resizeLabel', dict.resizeLabel);
   setText('jpgBgLabel', dict.jpgBgLabel);
+  setText('transparentLabel', dict.transparentLabel || 'Make image transparent');
+  setText('transparentToggleLabel', dict.transparentToggleLabel || 'enable');
   setText('previewBgLabel', dict.previewBgLabel);
   setText('previewBgToggle', dict.previewBgToggle);
   setText('jpgQLabel', dict.jpgQLabel);
@@ -684,6 +729,8 @@ function applyLang(lang){
   // Buttons
   setText('openPicker', dict.openPicker);
   setText('openRPicker', dict.openRPicker);
+  setText('svgDropHint', dict.dropHint || 'Or drag & drop files here.');
+  setText('rDropHint', dict.dropHint || 'Or drag & drop files here.');
   setText('download', dict.downloadBtn);
   setText('download2x', dict.download2xBtn);
   setText('downloadAll', dict.downloadAllBtn);
@@ -926,6 +973,7 @@ const optChecker = document.getElementById('optChecker');
 const optPreset = document.getElementById('optPreset');
 const optMode = document.getElementById('optMode');
 const optJpgBg = document.getElementById('optJpgBg');
+const optTransparent = document.getElementById('optTransparent');
 const optJpgQ = document.getElementById('optJpgQ');
 const optPreviewBg = document.getElementById('optPreviewBg');
 const optWorker = document.getElementById('optWorker');
@@ -933,23 +981,49 @@ const saveHint = document.getElementById('saveHint');
 
 const settings = {
   checker: true,
-  preset: 'original', // 'original' | '1280x720' | '1920x1080' | '1080x1080' | '1080x1920'
+  preset: 'original',
   mode: 'contain',     // 'contain' | 'cover' | 'stretch'
   jpgBg: '#ffffff',
+  transparent: false,
   jpgQ: 92,
   worker: false,
   previewBg: true,
 };
+
+const PRESET_PROFILES = {
+  original: null,
+  'youtube-thumb': { w: 1280, h: 720 },
+  'youtube-hd': { w: 1920, h: 1080 },
+  'instagram-post': { w: 1080, h: 1080 },
+  'instagram-story': { w: 1080, h: 1920 },
+  'tiktok-cover': { w: 1080, h: 1920 },
+};
+
+const PRESET_LEGACY_MAP = {
+  '1280x720': 'youtube-thumb',
+  '1920x1080': 'youtube-hd',
+  '1080x1080': 'instagram-post',
+  '1080x1920': 'instagram-story',
+};
+
+function normalizePresetValue(value){
+  const raw = String(value || 'original').trim();
+  if (Object.prototype.hasOwnProperty.call(PRESET_PROFILES, raw)) return raw;
+  if (Object.prototype.hasOwnProperty.call(PRESET_LEGACY_MAP, raw)) return PRESET_LEGACY_MAP[raw];
+  return 'original';
+}
 
 function loadSettings(){
   try{
     const raw = localStorage.getItem(LS_KEY);
     if (raw){ Object.assign(settings, JSON.parse(raw)); }
   }catch(_){}
+  settings.preset = normalizePresetValue(settings.preset);
   if (optChecker) optChecker.checked = !!settings.checker;
   if (optPreset) optPreset.value = settings.preset;
   if (optMode) optMode.value = settings.mode;
   if (optJpgBg) optJpgBg.value = settings.jpgBg;
+  if (optTransparent) optTransparent.checked = !!settings.transparent;
   if (optJpgQ) optJpgQ.value = String(settings.jpgQ);
   if (optWorker) optWorker.checked = !!settings.worker;
   if (optPreviewBg) optPreviewBg.checked = !!settings.previewBg;
@@ -968,7 +1042,37 @@ function applyChecker(){
   if (settings.checker) document.body.classList.remove('no-checker');
   else document.body.classList.add('no-checker');
 }
+function hexToRgb(hex){
+  const s = String(hex || '').trim();
+  const m = s.match(/^#?([a-f0-9]{6})$/i);
+  if (!m) return null;
+  const n = m[1];
+  return {
+    r: parseInt(n.slice(0,2), 16),
+    g: parseInt(n.slice(2,4), 16),
+    b: parseInt(n.slice(4,6), 16),
+  };
+}
+function applyTransparencyToCanvas(targetCtx, w, h){
+  if (!settings.transparent) return;
+  const rgb = hexToRgb(settings.jpgBg || '#ffffff');
+  if (!rgb) return;
+  const img = targetCtx.getImageData(0, 0, w, h);
+  const data = img.data;
+  const tolerance = 26;
+  for (let i=0; i<data.length; i+=4){
+    const dr = Math.abs(data[i] - rgb.r);
+    const dg = Math.abs(data[i+1] - rgb.g);
+    const db = Math.abs(data[i+2] - rgb.b);
+    if (dr <= tolerance && dg <= tolerance && db <= tolerance){
+      data[i+3] = 0;
+    }
+  }
+  targetCtx.putImageData(img, 0, 0);
+}
 function parsePreset(p){
+  const key = normalizePresetValue(p);
+  return PRESET_PROFILES[key] || null;
   if (!p || p==='original') return null;
   const m = String(p).trim().match(/^(\d+)\s*[x×]\s*(\d+)$/i);
   if (!m) return null;
@@ -1314,6 +1418,7 @@ async function exportCanvasAs(kind, filename){
         tctx.clearRect(0,0,tmp.width,tmp.height);
       }
       tctx.drawImage(canvas, 0, 0, tmp.width, tmp.height);
+      if (kind !== 'jpg') applyTransparencyToCanvas(tctx, tmp.width, tmp.height);
       const mime = kind === 'jpg' ? 'image/jpeg' : 'image/png';
       const quality = kind === 'jpg' ? (settings.jpgQ||92)/100 : undefined;
       const href = tmp.toDataURL(mime, quality);
@@ -1335,6 +1440,7 @@ async function exportCanvasAs(kind, filename){
       const a = document.createElement('a'); a.download = filename; a.href = href; a.click();
       recordExport({ name: filename, type: 'img->jpg', size: { w: tmp.width, h: tmp.height }, thumb: (function(){ try{ return tmp.toDataURL('image/png'); }catch(_){ return ''; } })() });
     } else {
+      if (kind !== 'jpg') applyTransparencyToCanvas(ctx, canvas.width, canvas.height);
       const href = canvas.toDataURL('image/png');
       const a = document.createElement('a'); a.download = filename; a.href = href; a.click();
       recordExport({ name: filename, type: 'img->png', size: { w: canvas.width, h: canvas.height }, thumb: captureThumb() });
@@ -1371,6 +1477,38 @@ const btnAll = document.getElementById('downloadAll');
 const btnAll2x = document.getElementById('downloadAll2x');
 let items = []; // {name: string, svg: string}
 let currentIndex = -1;
+let previewMotionTimer = null;
+const previewWrap = document.querySelector('.preview-wrap');
+const toastRoot = document.createElement('div');
+toastRoot.className = 'toast-stack';
+document.body.appendChild(toastRoot);
+
+function localText(de, en){ return currentLang === 'en' ? en : de; }
+function showToast(message, type='info'){
+  if (!message) return;
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = message;
+  toastRoot.appendChild(toast);
+  requestAnimationFrame(()=> toast.classList.add('show'));
+  setTimeout(()=>{
+    toast.classList.remove('show');
+    setTimeout(()=> toast.remove(), 220);
+  }, type === 'error' ? 4200 : 2600);
+}
+function pulsePreview(mode){
+  if (!previewWrap) return;
+  previewWrap.classList.remove('is-loading', 'is-updated');
+  if (previewMotionTimer){ clearTimeout(previewMotionTimer); previewMotionTimer = null; }
+  if (mode === 'loading'){ previewWrap.classList.add('is-loading'); return; }
+  previewWrap.classList.add('is-updated');
+  previewMotionTimer = setTimeout(()=> previewWrap.classList.remove('is-updated'), 520);
+}
+function setDropzoneState(el, active){
+  if (!el) return;
+  el.classList.toggle('drag-active', !!active);
+  el.setAttribute('data-drop-message', active ? localText('Jetzt loslassen', 'Drop files here') : '');
+}
 
 function withStatus(msg){ if(statusEl) statusEl.textContent = msg; }
 function ensureNamespace(svg){ return svg.includes('xmlns=') ? svg : svg.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"'); }
@@ -1396,6 +1534,7 @@ function extractSvgSize(svgText){
   return { w: 1280, h: 720 };
 }
 async function renderToCanvas(svgText, scale=1){
+  pulsePreview('loading');
   const svg = sanitizeSVG(svgText);
   const blob = new Blob([svg], { type: 'image/svg+xml' });
   const url = URL.createObjectURL(blob);
@@ -1413,9 +1552,10 @@ async function renderToCanvas(svgText, scale=1){
         else { ctx.clearRect(0,0,canvas.width,canvas.height); }
         if (preset) drawFitted(img, canvas.width, canvas.height, settings.mode || 'contain');
         else ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        applyTransparencyToCanvas(ctx, canvas.width, canvas.height);
 
         // Simulate JPG quality in preview if requested
-        Promise.resolve(applyPreviewQualityIfNeeded()).then(()=>{ updateDimBadge(); resolve(); });
+        Promise.resolve(applyPreviewQualityIfNeeded()).then(()=>{ updateDimBadge(); pulsePreview('updated'); resolve(); });
       } finally { URL.revokeObjectURL(url); }
     };
     img.onerror = (e)=>{ URL.revokeObjectURL(url); reject(e); };
@@ -1429,6 +1569,7 @@ function refreshList(){
   items.forEach((it, idx)=>{
     const li = document.createElement('li');
     li.className = 'file-item' + (idx===currentIndex ? ' active' : '');
+    li.style.animationDelay = `${Math.min(idx, 8) * 28}ms`;
     li.textContent = it.name;
     li.tabIndex = 0;
     li.addEventListener('click', ()=> selectIndex(idx));
@@ -1463,6 +1604,7 @@ async function handleFiles(fileList){
   const wasEmpty = items.length === 0;
   items = items.concat(toAdd);
   withStatus(L('svgLoadedNTotal', { n: toAdd.length, total: items.length }));
+  showToast(localText(`${toAdd.length} SVG-Datei(en) geladen.`, `${toAdd.length} SVG file(s) loaded.`), 'success');
   refreshList();
   if (wasEmpty) selectIndex(0);
 }
@@ -1474,10 +1616,10 @@ if (fileInput) fileInput.addEventListener('change', e=>{
 });
 if (openPickerBtn && !openPickerBtn.dataset.bound){ openPickerBtn.dataset.bound='1'; openPickerBtn.addEventListener('click', ()=> fileInput && fileInput.click()); }
 if (dropzone){
-  dropzone.addEventListener('dragenter', (e)=>{ e.preventDefault(); dropzone.classList.add('dragover'); });
-  dropzone.addEventListener('dragover',  (e)=>{ e.preventDefault(); dropzone.classList.add('dragover'); });
-  dropzone.addEventListener('dragleave', (e)=>{ e.preventDefault(); dropzone.classList.remove('dragover'); });
-  dropzone.addEventListener('drop',      (e)=>{ e.preventDefault(); dropzone.classList.remove('dragover'); const dt = e.dataTransfer; if (dt && dt.files) handleFiles(dt.files); });
+  dropzone.addEventListener('dragenter', (e)=>{ e.preventDefault(); dropzone.classList.add('dragover'); setDropzoneState(dropzone, true); });
+  dropzone.addEventListener('dragover',  (e)=>{ e.preventDefault(); dropzone.classList.add('dragover'); setDropzoneState(dropzone, true); });
+  dropzone.addEventListener('dragleave', (e)=>{ e.preventDefault(); dropzone.classList.remove('dragover'); setDropzoneState(dropzone, false); });
+  dropzone.addEventListener('drop',      (e)=>{ e.preventDefault(); dropzone.classList.remove('dragover'); setDropzoneState(dropzone, false); const dt = e.dataTransfer; if (dt && dt.files) handleFiles(dt.files); });
 }
 if (clearBtn) clearBtn.addEventListener('click', ()=>{ items = []; currentIndex = -1; ctx.clearRect(0,0,canvas.width,canvas.height); refreshList(); withStatus(L('listCleared')); });
 setButtonsEnabled(false);
@@ -1498,8 +1640,9 @@ async function download(scale, suffix=''){
     TitleStatus.start(currentLang==='en'?'Exporting':'Exportiere');
     const name = await exportOne(items[currentIndex], scale, suffix);
     withStatus(L('exportOneDone', { name }));
+    showToast(localText(`Exportiert: ${name}`, `Exported: ${name}`), 'success');
     logEvent('export.svg.single', { name, scale });
-  }catch(err){ console.error(err); withStatus(L('exportFailed')); }
+  }catch(err){ console.error(err); withStatus(L('exportFailed')); showToast(localText('Export fehlgeschlagen.', 'Export failed.'), 'error'); }
   finally{ TitleStatus.stop(); }
 }
 async function downloadAll(scale, suffix=''){
@@ -1507,6 +1650,7 @@ async function downloadAll(scale, suffix=''){
   TitleStatus.start(currentLang==='en'?'Exporting':'Exportiere');
   let success = 0; for (const it of items){ try{ await exportOne(it, scale, suffix); success++; } catch(err){ console.warn('Fehler beim Export:', it.name, err); } }
   withStatus(L('exportCompleted', { ok: success, total: items.length }));
+  showToast(localText(`${success}/${items.length} SVG exportiert.`, `${success}/${items.length} SVG exported.`), success === items.length ? 'success' : 'info');
   logEvent('export.svg.all', { ok: success, total: items.length, scale });
   TitleStatus.stop();
 }
@@ -1600,6 +1744,7 @@ function refreshRList(){
   rItems.forEach((it, idx)=>{
     const li = document.createElement('li');
     li.className = 'file-item' + (idx===rIndex ? ' active' : '');
+    li.style.animationDelay = `${Math.min(idx, 8) * 28}ms`;
     li.textContent = it.name;
     li.tabIndex = 0;
     li.addEventListener('click', ()=> rSelect(idx));
@@ -1610,6 +1755,7 @@ function refreshRList(){
   setRButtonsEnabled(rItems.length>0);
 }
 async function rRenderToCanvasFromURL(url, forceSize, forceMode){
+  pulsePreview('loading');
   await new Promise((resolve, reject)=>{
     const img = new Image();
     img.onload = ()=>{
@@ -1622,8 +1768,9 @@ async function rRenderToCanvasFromURL(url, forceSize, forceMode){
         else { ctx.clearRect(0,0,canvas.width,canvas.height); }
         if (preset || forceSize) drawFitted(img, tW, tH, forceMode || settings.mode || 'contain');
         else ctx.drawImage(img, 0, 0);
+        applyTransparencyToCanvas(ctx, canvas.width, canvas.height);
 
-        Promise.resolve(applyPreviewQualityIfNeeded()).then(()=>{ updateDimBadge(); hasPreview = true; resolve(); });
+        Promise.resolve(applyPreviewQualityIfNeeded()).then(()=>{ updateDimBadge(); hasPreview = true; pulsePreview('updated'); resolve(); });
       } finally { /* Do not revoke here; URLs are reused for export. Revoke on clear instead. */ }
     };
     img.onerror = reject; img.src = url;
@@ -1666,6 +1813,7 @@ async function rHandleFiles(fileList){
   if (!toAdd.length){ rWithStatus(L('invalidImages')); return; }
   const empty = rItems.length===0; rItems = rItems.concat(toAdd);
   rWithStatus(L('rLoadedNTotal', { n: toAdd.length, total: rItems.length }));
+  showToast(localText(`${toAdd.length} Bilddatei(en) geladen.`, `${toAdd.length} image file(s) loaded.`), 'success');
   refreshRList(); if (empty) rSelect(0);
 }
 async function rExportOne(item, target){
@@ -1685,6 +1833,7 @@ async function rExportOne(item, target){
         }
         if (preset) drawFitted(img, tW, tH, settings.mode || 'contain');
         else ctx.drawImage(img, 0, 0);
+        if (target !== 'jpg') applyTransparencyToCanvas(ctx, canvas.width, canvas.height);
         const mime = target === 'jpg' ? 'image/jpeg' : 'image/png';
         const quality = target === 'jpg' ? (settings.jpgQ||92)/100 : undefined;
         const href = canvas.toDataURL(mime, quality);
@@ -1704,11 +1853,12 @@ async function rDownloadSingle(target){
     const name = (lastPreviewName || 'preview') + (target==='jpg'?'.jpg':'.png');
     await exportCanvasAs(target, name);
     rWithStatus(L('exportOneDone', { name }));
-  logEvent('export.preview', { name, target });
+    showToast(localText(`Exportiert: ${name}`, `Exported: ${name}`), 'success');
+    logEvent('export.preview', { name, target });
     return;
   }
-  try{ await rExportOne(rItems[rIndex], target); rWithStatus(L('exportOneDone', { name: `${rItems[rIndex].name}.${target==='jpg'?'jpg':'png'}` })); }
-  catch(err){ console.error(err); rWithStatus(L('exportFailed')); }
+  try{ const name = `${rItems[rIndex].name}.${target==='jpg'?'jpg':'png'}`; await rExportOne(rItems[rIndex], target); rWithStatus(L('exportOneDone', { name })); showToast(localText(`Exportiert: ${name}`, `Exported: ${name}`), 'success'); }
+  catch(err){ console.error(err); rWithStatus(L('exportFailed')); showToast(localText('Export fehlgeschlagen.', 'Export failed.'), 'error'); }
 }
 async function rDownloadAll(target){
   if (!rItems.length){
@@ -1717,6 +1867,7 @@ async function rDownloadAll(target){
       const name = (lastPreviewName || 'preview') + (target==='jpg'?'.jpg':'.png');
       await exportCanvasAs(target, name);
       rWithStatus(L('exportCompleted', { ok: 1, total: 1 }));
+      showToast(localText(`Exportiert: ${name}`, `Exported: ${name}`), 'success');
     } else {
       alert(L('alertLoadImages')); 
     }
@@ -1724,6 +1875,7 @@ async function rDownloadAll(target){
   }
   let ok = 0; for (const it of rItems){ try{ await rExportOne(it, target); ok++; }catch(e){ console.warn('Fehler beim Export:', it.name, e); } }
   rWithStatus(L('exportCompleted', { ok, total: rItems.length }));
+  showToast(localText(`${ok}/${rItems.length} Bilder exportiert.`, `${ok}/${rItems.length} images exported.`), ok === rItems.length ? 'success' : 'info');
   logEvent('export.raster.all', { ok, total: rItems.length, target });
 }
 async function loadImageFromUrlToList(){
@@ -1749,11 +1901,11 @@ if (rFileInput) rFileInput.addEventListener('change', e=>{
 });
 if (openRPickerBtn && !openRPickerBtn.dataset.bound){ openRPickerBtn.dataset.bound='1'; openRPickerBtn.addEventListener('click', ()=> rFileInput && rFileInput.click()); }
 if (rDropzone){
-  rDropzone.addEventListener('dragenter', (e)=>{ e.preventDefault(); rDropzone.classList.add('dragover'); });
-  rDropzone.addEventListener('dragover',  (e)=>{ e.preventDefault(); rDropzone.classList.add('dragover'); });
-  rDropzone.addEventListener('dragleave', (e)=>{ e.preventDefault(); rDropzone.classList.remove('dragover'); });
+  rDropzone.addEventListener('dragenter', (e)=>{ e.preventDefault(); rDropzone.classList.add('dragover'); setDropzoneState(rDropzone, true); });
+  rDropzone.addEventListener('dragover',  (e)=>{ e.preventDefault(); rDropzone.classList.add('dragover'); setDropzoneState(rDropzone, true); });
+  rDropzone.addEventListener('dragleave', (e)=>{ e.preventDefault(); rDropzone.classList.remove('dragover'); setDropzoneState(rDropzone, false); });
   rDropzone.addEventListener('drop',      async (e)=>{
-    e.preventDefault(); rDropzone.classList.remove('dragover'); const dt = e.dataTransfer; 
+    e.preventDefault(); rDropzone.classList.remove('dragover'); setDropzoneState(rDropzone, false); const dt = e.dataTransfer; 
     if (dt && dt.files && dt.files.length){
       const f = dt.files[0];
       if (/(png|jpg|jpeg)$/i.test(f.name) || /image\/(png|jpeg)/.test(f.type)){
@@ -1791,28 +1943,70 @@ function ytDirectUrl(vid, key){ return `https://img.youtube.com/vi/${encodeURICo
 function ytProxyUrl(vid, key){ return `/yt-thumb?vid=${encodeURIComponent(vid)}&res=${key}`; }
 
 function ytWithStatus(msg){ if (ytStatusEl) ytStatusEl.textContent = msg; }
-function parseYouTubeId(raw){
+function ytSizeLabel(key){
+  const sz = YT_SIZE[key] || [0,0];
+  return `${key} ${sz[0]}x${sz[1]}`;
+}
+async function ytPreviewAtResolution(vid, key){
   try{
-    const url = new URL(raw);
-    // youtu.be/VIDEOID
-    if (/^youtu\.be$/i.test(url.hostname)){
-      const id = url.pathname.slice(1).split('/')[0];
-      return /^[A-Za-z0-9_-]{6,20}$/.test(id) ? id : null;
+    await rRenderToCanvasFromURL(ytDirectUrl(vid, key), { w: 1280, h: 720 }, 'cover');
+    ytWithStatus(localText(`Vorschau geladen: ${key}`, `Preview loaded: ${key}`));
+    showToast(localText(`Vorschau: ${key}`, `Preview: ${key}`), 'info');
+    logEvent('yt.preview', { vid, key });
+  }catch(_){
+    ytWithStatus(L('ytPreviewFailed'));
+    showToast(localText(`Vorschau fehlgeschlagen: ${key}`, `Preview failed: ${key}`), 'error');
+  }
+}
+async function ytDownloadOne(vid, key){
+  const prox = ytProxyUrl(vid, key);
+  const direct = ytDirectUrl(vid, key);
+  try{
+    try{
+      const blob = await ytFetchBlob(prox);
+      const href = URL.createObjectURL(blob);
+      downloadDataUrl(`${vid}_${key}.jpg`, href);
+      setTimeout(()=>{ try{ URL.revokeObjectURL(href); }catch(_){} }, 250);
+    }catch(_){
+      window.open(direct, '_blank');
     }
-    // youtube.com watch?v=VIDEOID
-    if (/youtube\.(com|no|de|co\.uk|fr|nl|be|it|es|pl|pt|com\.br)$/i.test(url.hostname)){
+    const sz = YT_SIZE[key] || [0,0];
+    recordExport({ name: `${vid}_${key}.jpg`, type: 'img->jpg', size: { w: sz[0], h: sz[1] }, thumb: direct });
+    logEvent('yt.download', { vid, key });
+    ytWithStatus(localText(`Thumbnail geladen: ${key}`, `Thumbnail downloaded: ${key}`));
+    showToast(localText(`YouTube-Thumbnail: ${key}`, `YouTube thumbnail: ${key}`), 'success');
+  }catch(_){
+    ytWithStatus(L('ytDownloadFailed'));
+    showToast(localText(`Download fehlgeschlagen: ${key}`, `Download failed: ${key}`), 'error');
+  }
+}
+function parseYouTubeInput(raw){
+  const s = String(raw || '').trim();
+  if (!s) return { error: 'invalid' };
+  try{
+    const url = new URL(s);
+    const host = String(url.hostname || '').toLowerCase();
+    const path = String(url.pathname || '');
+    const isPlaylistOnly = !!url.searchParams.get('list') && !url.searchParams.get('v') && !/\/(shorts|embed|live)\//i.test(path);
+    if (isPlaylistOnly) return { error: 'playlist' };
+    if (/^(?:www\.)?youtu\.be$/i.test(host)){
+      const id = path.slice(1).split('/')[0];
+      return /^[A-Za-z0-9_-]{6,20}$/.test(id) ? { id } : { error: 'invalid' };
+    }
+    if (/^(?:www\.|m\.)?youtube\.(com|no|de|co\.uk|fr|nl|be|it|es|pl|pt|com\.br)$/i.test(host)){
       const id = url.searchParams.get('v');
-      if (id && /^[A-Za-z0-9_-]{6,20}$/.test(id)) return id;
-      // shorts or embed
-      const path = url.pathname || '';
-      const m = path.match(/\/shorts\/([A-Za-z0-9_-]{6,20})|\/embed\/([A-Za-z0-9_-]{6,20})/);
-      if (m){ return m[1] || m[2] || null; }
+      if (id && /^[A-Za-z0-9_-]{6,20}$/.test(id)) return { id };
+      const match = path.match(/\/(?:(?:shorts|embed|live|v)\/)([A-Za-z0-9_-]{6,20})(?:[/?]|$)/i);
+      if (match) return { id: match[1] };
+      return { error: 'invalid' };
     }
   }catch(_){}
-  // raw id fallback
-  const s = String(raw||'').trim();
-  if (/^[A-Za-z0-9_-]{6,20}$/.test(s)) return s;
-  return null;
+  if (/^[A-Za-z0-9_-]{6,20}$/.test(s)) return { id: s };
+  return { error: 'invalid' };
+}
+function parseYouTubeId(raw){
+  const parsed = parseYouTubeInput(raw);
+  return parsed && parsed.id ? parsed.id : null;
 }
 
 function ytBuildItem(vid){
@@ -1849,12 +2043,77 @@ function ytBuildItem(vid){
   return li;
 }
 
+function ytBuildRichItem(vid){
+  const li = document.createElement('li');
+  li.className = 'file-item yt-item';
+  const header = document.createElement('div');
+  header.className = 'export-row yt-item-header';
+  const thumb = document.createElement('img');
+  thumb.className = 'thumb';
+  thumb.alt = 'thumb';
+  thumb.loading = 'lazy';
+  thumb.src = ytDirectUrl(vid, 'hqdefault');
+  header.appendChild(thumb);
+  const meta = document.createElement('div');
+  meta.className = 'yt-meta';
+  meta.innerHTML = `<div class="yt-meta-title">${L('ytMetaVideo')}: <span class="yt-video-id">${vid}</span></div><div class="yt-meta-sub muted">${YT_RES.length} ${localText('Varianten verfügbar', 'variants available')}</div>`;
+  header.appendChild(meta);
+  const actions = document.createElement('div');
+  actions.className = 'yt-header-actions';
+  const previewBtn = document.createElement('button');
+  previewBtn.type = 'button';
+  previewBtn.className = 'btn ghost yt-prev-btn';
+  previewBtn.textContent = L('ytPreviewBtn');
+  previewBtn.addEventListener('click', ()=> ytPreviewAtResolution(vid, 'maxresdefault'));
+  const allBtn = document.createElement('button');
+  allBtn.type = 'button';
+  allBtn.className = 'btn yt-dl-btn';
+  allBtn.textContent = L('ytAllBtn');
+  allBtn.addEventListener('click', ()=> ytDownloadAllFor(vid));
+  actions.append(previewBtn, allBtn);
+  header.appendChild(actions);
+  li.appendChild(header);
+  const resGrid = document.createElement('div');
+  resGrid.className = 'yt-res-grid';
+  YT_RES.forEach((key)=>{
+    const card = document.createElement('div');
+    card.className = 'yt-res-card';
+    const label = document.createElement('div');
+    label.className = 'yt-res-label';
+    label.textContent = ytSizeLabel(key);
+    const btns = document.createElement('div');
+    btns.className = 'yt-res-actions';
+    const preview = document.createElement('button');
+    preview.type = 'button';
+    preview.className = 'btn ghost tiny';
+    preview.textContent = localText('Preview', 'Preview');
+    preview.addEventListener('click', ()=> ytPreviewAtResolution(vid, key));
+    const open = document.createElement('button');
+    open.type = 'button';
+    open.className = 'btn ghost tiny';
+    open.textContent = localText('Direkt', 'Open');
+    open.addEventListener('click', ()=> window.open(ytDirectUrl(vid, key), '_blank'));
+    const download = document.createElement('button');
+    download.type = 'button';
+    download.className = 'btn tiny';
+    download.textContent = localText('Download', 'Download');
+    download.addEventListener('click', ()=> ytDownloadOne(vid, key));
+    btns.append(preview, open, download);
+    card.append(label, btns);
+    resGrid.appendChild(card);
+  });
+  li.appendChild(resGrid);
+  return li;
+}
+
 async function ytFetch(){
   const raw = (ytUrlInput && ytUrlInput.value || '').trim();
-  const vid = parseYouTubeId(raw);
-  if (!vid){ ytWithStatus(L('ytInvalid')); return; }
-  if (ytListEl){ ytListEl.innerHTML=''; ytListEl.appendChild(ytBuildItem(vid)); }
+  const parsed = parseYouTubeInput(raw);
+  if (!parsed.id){ const msg = L(parsed.error === 'playlist' ? 'ytPlaylistIgnored' : 'ytInvalid'); ytWithStatus(msg); showToast(msg, 'error'); return; }
+  const vid = parsed.id;
+  if (ytListEl){ ytListEl.innerHTML=''; ytListEl.appendChild(ytBuildRichItem(vid)); }
   ytWithStatus(L('ytLoaded'));
+  showToast(localText(`Video erkannt: ${vid}`, `Video detected: ${vid}`), 'success');
   logEvent('yt.load', { vid });
 }
 
@@ -1862,7 +2121,8 @@ function downloadDataUrl(name, href){ const a=document.createElement('a'); a.dow
 async function ytFetchBlob(url){ const r=await fetch(url); if(!r.ok) throw new Error('HTTP '+r.status); return await r.blob(); }
 async function ytDownloadAll(){
   const raw = (ytUrlInput && ytUrlInput.value || '').trim();
-  const vid = parseYouTubeId(raw); if (!vid){ ytWithStatus(L('ytInvalid')); return; }
+  const parsed = parseYouTubeInput(raw); if (!parsed.id){ const msg = L(parsed.error === 'playlist' ? 'ytPlaylistIgnored' : 'ytInvalid'); ytWithStatus(msg); showToast(msg, 'error'); return; }
+  const vid = parsed.id;
   try{ TitleStatus.start(currentLang==='en'?'Downloading':'Lade herunter'); await ytDownloadAllFor(vid); }
   finally{ TitleStatus.stop(); }
 }
@@ -1892,25 +2152,27 @@ async function ytDownloadAllFor(vid){
       recordExport({ name: `${vid}_${key}.jpg`, type: 'img->jpg', size: { w: sz[0], h: sz[1] }, thumb: direct });
       logEvent('yt.download', { vid, key });
     }
-    ytWithStatus(usedProxy ? L('ytDoneDownloaded', { ok, total: YT_RES.length }) : L('ytDoneOpened', { ok, total: YT_RES.length }));
-  }catch(err){ ytWithStatus(L('ytDownloadFailed')); }
+    const msg = usedProxy ? L('ytDoneDownloaded', { ok, total: YT_RES.length }) : L('ytDoneOpened', { ok, total: YT_RES.length });
+    ytWithStatus(msg);
+    showToast(msg, usedProxy ? 'success' : 'info');
+  }catch(err){ ytWithStatus(L('ytDownloadFailed')); showToast(L('ytDownloadFailed'), 'error'); }
 }
 if (ytFetchBtn) ytFetchBtn.addEventListener('click', ytFetch);
 
 // Settings handlers
 function hookSettings(){
   if (optChecker) optChecker.addEventListener('change', ()=>{ settings.checker = !!optChecker.checked; applyChecker(); saveSettings(); });
-  if (optPreset) optPreset.addEventListener('change', ()=>{ settings.preset = optPreset.value; saveSettings(); rerenderPreview(); });
+  if (optPreset) optPreset.addEventListener('change', ()=>{ settings.preset = normalizePresetValue(optPreset.value); if (optPreset.value !== settings.preset) optPreset.value = settings.preset; saveSettings(); rerenderPreview(); });
   if (optMode) optMode.addEventListener('change', ()=>{ settings.mode = optMode.value; saveSettings(); rerenderPreview(); });
   if (optJpgBg){
-    optJpgBg.addEventListener('input', ()=>{ settings.jpgBg = optJpgBg.value; saveSettings(); if (settings.previewBg) rerenderPreview(); });
-    optJpgBg.addEventListener('change', ()=>{ settings.jpgBg = optJpgBg.value; saveSettings(); if (settings.previewBg) rerenderPreview(); });
+    optJpgBg.addEventListener('input', ()=>{ settings.jpgBg = optJpgBg.value; saveSettings(); if (settings.previewBg || settings.transparent) rerenderPreview(); });
+    optJpgBg.addEventListener('change', ()=>{ settings.jpgBg = optJpgBg.value; saveSettings(); if (settings.previewBg || settings.transparent) rerenderPreview(); });
   }
+  if (optTransparent) optTransparent.addEventListener('change', ()=>{ settings.transparent = !!optTransparent.checked; saveSettings(); rerenderPreview(); });
   if (optJpgQ) optJpgQ.addEventListener('input', ()=>{ settings.jpgQ = parseInt(optJpgQ.value,10) || 92; saveSettings(); });
   if (optWorker) optWorker.addEventListener('change', ()=>{ settings.worker = !!optWorker.checked; saveSettings(); });
-  if (optPreset) optPreset.addEventListener('change', ()=>{ rerenderPreview(); });
   if (optPreviewBg) optPreviewBg.addEventListener('change', ()=>{ settings.previewBg = !!optPreviewBg.checked; saveSettings(); rerenderPreview(); });
-  if (optJpgQ) optJpgQ.addEventListener('input', ()=>{ settings.jpgQ = parseInt(optJpgQ.value,10) || 92; saveSettings(); rerenderPreview(); });
+  if (optJpgQ) optJpgQ.addEventListener('input', ()=>{ rerenderPreview(); });
 }
 
 // Bootstrap after DOM is fully parsed to guarantee all elements exist

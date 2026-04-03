@@ -1,135 +1,197 @@
 # YouTube Thumbnail Converter
 
-Create crisp YouTube thumbnails in your browser. Convert SVG and raster images (PNG/JPG), fetch thumbnails from YouTube links, keep a local history – everything on-device and privacy‑friendly.
+Browser-based tool for creating, converting, and exporting thumbnail-ready images.
 
-## Live demo
+The app supports SVG to PNG export, PNG/JPG conversion, YouTube thumbnail loading, local export history, presets, theme/language switching, and a polished client-side UI. Most features work directly in the browser; the optional local server improves YouTube thumbnail download handling through a small proxy route.
 
-- URL: [https://MrSimpleJS.github.io/YouTube-Converter/](https://you-tube-converter-zeta.vercel.app/)
+## Features
 
-## Highlights
+- SVG to PNG export
+- PNG/JPG conversion with contain, cover, and stretch modes
+- Named output presets
+  - Original
+  - YouTube Thumbnail
+  - YouTube HD
+  - Instagram Post
+  - Instagram Story
+  - TikTok Cover
+- YouTube thumbnail module
+  - Robust URL parsing
+  - `youtube.com`, `www.youtube.com`, `m.youtube.com`, `youtu.be`
+  - `watch`, `shorts`, `embed`, `live`, raw IDs
+  - Playlist-only links are rejected intentionally
+  - Per-resolution preview, open, and download actions
+- Theme switching
+- German / English UI
+- Local export history via `localStorage`
+- Guided tour
+- Admin-only audit area with mini charts
+- Drag and drop support
+- Toast notifications and lightweight UI motion
+- Optional transparency setting for preview and PNG export
 
-- 100% client-side (no uploads)
-- Multi-language UI (Deutsch / English)
-- SVG → PNG export (YouTube presets supported)
-- Raster PNG/JPG conversion with contain/cover/stretch
-- YouTube thumbnails loader (maxres, hq, etc.)
-- Live preview canvas with dimension badge
-- Export history stored locally (click to preview)
-- Dark/light theme; accessible; reduced-motion aware
-- New: Guided Tour (onboarding) with focus trap, step indicator, reset
-- New: Admin-only Audit Panel and mini charts (Top events, Activity 7d, Users)
+## Project Structure
 
-## Quick start
+```text
+index.html    Main UI
+app.js        Application logic
+style.css     UI styling
+server.js     Optional local static server + YouTube thumbnail proxy
+CHANGELOG.md  Change history
+```
 
-- Open `index.html` in a modern browser (Chrome, Edge, Firefox, Safari).
-- Pick theme and language from the top bar.
-- Use the cards for SVG, raster images, or YouTube.
+## Quick Start
 
-No backend or installation needed.
+### Option 1: Open locally
+
+Open `index.html` in a modern browser.
+
+This is enough for:
+
+- SVG export
+- PNG/JPG conversion
+- local preview and history
+- most UI features
+
+### Option 2: Run the local server
+
+Use the local server if you want the proxy-backed YouTube thumbnail download flow.
+
+Typical start:
+
+```bash
+node server.js
+```
+
+Then open:
+
+```text
+http://localhost:5173
+```
 
 ## Usage
 
-### 1) SVG → PNG
-- Click “📁 Select files” in the SVG card or drag & drop `.svg` files.
-- Select an item to preview.
-- “Download PNG” (or @2x) exports the current preview; “Export all” processes the list.
+### SVG
 
-Notes:
-- The preview respects the chosen preset and resize mode.
-- Exports are recorded to the local history.
+1. Select SVG files or drag them into the SVG area.
+2. Choose an item from the list.
+3. Export the current item or export all as PNG.
+4. Use presets and resize mode to control the output.
 
-### 2) Raster images (PNG/JPG)
-- Click “📁 Select images” or drag & drop `.png`/`.jpg` files.
-- Select an item to preview and convert.
-- Export single items to PNG/JPG or export all.
-- Or paste a direct image URL and use “Load from URL” for preview and export.
+### Raster Images
 
-Resize modes:
-- Contain (fit fully, letterbox)
-- Cover (fill and crop)
-- Stretch (no aspect lock)
+1. Select PNG/JPG files or drag them into the raster area.
+2. Choose an item from the list.
+3. Export as PNG or JPG.
+4. Optionally load an image from a direct URL.
 
-### 3) YouTube thumbnails
-- Paste a YouTube link (watch URL or youtu.be) and click “Load”.
-- The app shows a preview (maxres/hq). Use the button to download all resolutions.
-- If multiple downloads are blocked, direct URLs open in tabs so you can save them manually.
+### YouTube Thumbnails
 
-## Guided Tour (onboarding)
-
-- Starts once for new users (can be restarted via the “Help” button or Settings → “Reset tour”).
-- Focus trap keeps keyboard navigation inside the tour; Escape closes.
-- Step indicator shows the current position (e.g., 3/6).
-
-## Toolbar note
-
-- By request, the Sign‑in button and User Switcher are currently disabled (commented out). The Help button and Theme toggle remain available.
-
-## Admin • Audit & Charts (client-only)
-
-- Admin panel is visible only to users with role `admin` (client-side role; no server).
-- Filters (user/action/date), pagination and export/clear options.
-- Mini charts: Top events, last 7 days activity, and user distribution. Charts respond to filters.
-
-Note: For real multi-user security and server-side logging, a backend would be required.
+1. Paste a YouTube link or video ID.
+2. Click `Load`.
+3. Use the generated card to:
+   - preview thumbnails
+   - open the original thumbnail URL
+   - download single resolutions
+   - download all resolutions
 
 ## Settings
 
-- Presets: Original, 1280×720, 1920×1080, 1080×1080, 1080×1920
-- Resize mode: contain, cover, stretch
-- JPG background color and quality, and whether to apply it to the preview
-- Optional: batch via Web Worker (forward compatibility)
-- Reset the Guided Tour
+The settings panel currently includes:
 
-## Export history
+- checkerboard transparency preview
+- named size presets
+- resize mode
+- JPG background color
+- make image transparent
+- apply preview background
+- JPG quality
+- batch with Web Worker toggle
 
-- Recent exports are stored in `localStorage`.
-- Click an entry to preview it on the canvas.
-- YouTube entries prefill the YouTube field; external URLs prefill the image URL.
-- Pagination and type filters are available.
+### Transparency Setting
 
-## Internationalization (i18n)
+`Make image transparent` uses the selected background color as a transparency key.
 
-- Language dropdown: Deutsch / English
-- UI and most statuses update instantly
+This currently affects:
 
-## Accessibility & UX
+- preview rendering
+- PNG export
 
-- Reduced-motion aware; animated title only during actions
-- Themed scrollbars; keyboard and screen-reader friendly labels
+It does not produce transparency in JPG output, because JPG does not support alpha transparency.
 
-## Privacy
+## Language Support
 
-- Everything is local to your browser; no uploads
-- Export history stays on your device (`localStorage`)
+The interface supports:
 
-## Browser support
+- Deutsch
+- English
 
-- Chromium-based (Chrome, Edge, Brave, Opera)
-- Firefox (latest)
-- Safari (recent)
+Main UI elements, status texts, buttons, and most interaction labels switch dynamically.
 
-Modern features: canvas, Blob URLs, `localStorage`, and smooth scrolling.
+## Storage
 
-## Troubleshooting
+The app uses `localStorage` for:
 
-- CORS on external images: Some URLs block cross-origin usage. Download locally and load the file.
-- Multiple downloads blocked: Allow popups temporarily, or use the direct URLs opened by the app.
-- Cross-origin preview export fails: Some operations are restricted; use “Download all” (YouTube) or load assets locally.
+- theme
+- language
+- settings
+- export history
+- audit data
+- local auth/session data used by the client-side admin/auth UI
 
-## Project structure
+No dedicated backend database is used.
 
-```
-index.html   # Main UI (no build step needed)
-app.js       # App logic (i18n, tour, audit, preview, export, history)
-style.css    # Theme and component styles
-README.md    # This file
-```
+## Admin / Audit
 
-## Credits
+The project contains a client-side admin panel with:
 
-Made by Mr_Simple
+- audit list
+- filters
+- pagination
+- mini charts
+
+Important:
+
+- this is client-side only
+- it is useful for local/demo usage
+- it is not secure enough for real multi-user production auth
+
+## Browser Support
+
+Works best in modern browsers:
+
+- Chrome
+- Edge
+- Firefox
+- Safari
+
+Required browser capabilities include:
+
+- canvas
+- Blob/Object URLs
+- `localStorage`
+- modern DOM APIs
+
+## Known Limitations
+
+- Without the local server, some YouTube download actions fall back to opening direct image URLs in tabs.
+- External image URLs may fail because of CORS restrictions.
+- The admin/auth system is client-side only and should not be treated as secure backend authentication.
+- Transparency removal is color-key based, so results depend on how close the image background is to the selected color.
+
+## Recent Improvements
+
+- improved YouTube URL parsing
+- richer YouTube thumbnail cards
+- better toast/status feedback
+- stronger drag-and-drop feedback
+- redesigned UI
+- named presets
+- transparency setting in the Settings panel
 
 ## License
 
-This project is provided as-is, with no warranty. You are free to use and modify it for personal or educational purposes.
+Provided as-is, without warranty.
+
+- Mr_Simple
 

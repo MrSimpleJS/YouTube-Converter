@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2026-04-03
+
+- Bug fixes
+  - Fixed `server.js` fallback route to serve `index.html` instead of missing `convert.html`
+  - Fixed YouTube URL parsing for common `www.youtube.com` and `m.youtube.com` links
+  - Improved YouTube parsing for `shorts`, `embed`, `live`, raw IDs, and playlist-only rejection
+  - Removed duplicate settings event handlers for preset and JPG quality updates
+  - Fixed hero header overflow so the language dropdown menu is fully visible
+  - Fixed clipped buttons in the YouTube resolution cards by switching to a more flexible actions layout
+
+- YouTube module
+  - Added richer video details card with detected video ID and per-resolution actions
+  - Added per-resolution preview, direct open, and single download buttons
+  - Added clearer status and toast feedback for load, preview, and download actions
+
+- Settings
+  - Added named preset profiles for YouTube, Instagram Post, Instagram Story, and TikTok Cover
+  - Added compatibility mapping for legacy stored preset values
+  - Added new setting to make images transparent using the selected background color as the transparency key
+  - Transparency now applies to preview rendering and PNG exports
+
+- UI / UX
+  - Redesigned the overall interface with a new hero header, stronger card hierarchy, refined buttons, and improved preview framing
+  - Improved Settings panel styling with clearer labels, better spacing, and cleaner field presentation
+  - Enhanced drag-and-drop states with large active overlays and clearer visual feedback
+  - Added toast notifications for success, info, and error states
+  - Added lightweight motion for preview refreshes and list item appearance
+  - Refined YouTube card layout for better button alignment and more compact metadata
+
+- Docs
+  - Clarified README quick start to distinguish local `index.html` usage from optional Node server usage for `/yt-thumb`
+
 ## 2025-10-03
 
 - Guided Tour (onboarding)
