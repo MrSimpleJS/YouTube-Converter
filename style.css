@@ -191,7 +191,7 @@ html[data-theme="dark"] .settings-card input[type="color"]{background:rgba(255,2
 html[data-theme="dark"] .settings-card select.input{
   background-color:rgba(9,17,20,.88);
 }
-.settings-card select.input.custom-select-native{
+select.input.custom-select-native{
   display:none!important;
 }
 .custom-select{
@@ -256,10 +256,9 @@ html[data-theme="dark"] .custom-select-trigger:focus-visible{
   transform:rotate(225deg) translateY(-1px);
 }
 .custom-select-menu{
-  position:absolute;
+  position:fixed;
   left:0;
-  right:0;
-  top:calc(100% + 8px);
+  top:0;
   margin:0;
   padding:8px;
   list-style:none;
@@ -269,17 +268,19 @@ html[data-theme="dark"] .custom-select-trigger:focus-visible{
     linear-gradient(180deg,rgba(255,255,255,.96),rgba(246,241,232,.98));
   box-shadow:0 22px 42px rgba(22,28,38,.18);
   display:none;
-  z-index:35;
+  z-index:260;
   max-height:260px;
   overflow:auto;
+  pointer-events:auto;
 }
+.custom-select-menu li{position:relative;}
 html[data-theme="dark"] .custom-select-menu{
   background:
     linear-gradient(180deg,rgba(20,30,34,.98),rgba(12,19,22,.985));
   box-shadow:0 18px 36px rgba(0,0,0,.42);
   border-color:rgba(89,214,197,.16);
 }
-.custom-select.open .custom-select-menu{
+.custom-select-menu.open{
   display:block;
 }
 .custom-select-option{

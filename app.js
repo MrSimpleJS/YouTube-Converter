@@ -320,12 +320,18 @@ doLogin = async function(name, pass){
 // Close overlay with Escape
 document.addEventListener('keydown', (e)=>{ if (e.key==='Escape' && authOverlay && !authOverlay.hidden){ hideAuth(); } });
 document.addEventListener('pointerdown', (ev)=>{
-  customSelectMap.forEach(({ root, button })=>{
-    if (!root.contains(ev.target) && ev.target !== button) {
+  customSelectMap.forEach(({ root, button, menu })=>{
+    if (!root.contains(ev.target) && !menu.contains(ev.target) && ev.target !== button) {
       root.classList.remove('open');
+      menu.classList.remove('open');
+      menu.hidden = true;
       button.setAttribute('aria-expanded', 'false');
     }
   });
+  if (activeCustomSelect){
+    const activeParts = customSelectMap.get(activeCustomSelect);
+    if (!activeParts || (!activeParts.root.contains(ev.target) && !activeParts.menu.contains(ev.target))) activeCustomSelect = null;
+  }
 });
 document.addEventListener('keydown', (ev)=>{
   if (ev.key === 'Escape') closeAllCustomSelects();
@@ -1059,11 +1065,25 @@ function applyChecker(){
   else document.body.classList.add('no-checker');
 }
 const customSelectMap = new Map();
+let activeCustomSelect = null;
+function positionCustomSelectMenu(select){
+  const parts = customSelectMap.get(select);
+  if (!parts) return;
+  const rect = parts.button.getBoundingClientRect();
+  const gap = 8;
+  parts.menu.style.position = 'fixed';
+  parts.menu.style.left = `${Math.round(rect.left)}px`;
+  parts.menu.style.top = `${Math.round(rect.bottom + gap)}px`;
+  parts.menu.style.width = `${Math.round(rect.width)}px`;
+}
 function closeCustomSelect(select){
   const parts = customSelectMap.get(select);
   if (!parts) return;
   parts.root.classList.remove('open');
   parts.button.setAttribute('aria-expanded', 'false');
+  parts.menu.classList.remove('open');
+  parts.menu.hidden = true;
+  if (activeCustomSelect === select) activeCustomSelect = null;
 }
 function closeAllCustomSelects(except){
   customSelectMap.forEach((_, select)=>{
@@ -1089,7 +1109,13 @@ function refreshCustomSelect(select){
     btn.disabled = !!opt.disabled;
     btn.setAttribute('role', 'option');
     btn.setAttribute('aria-selected', opt.value === select.value ? 'true' : 'false');
-    btn.addEventListener('click', ()=>{
+    btn.addEventListener('pointerdown', (ev)=>{
+      ev.preventDefault();
+      ev.stopPropagation();
+    });
+    btn.addEventListener('click', (ev)=>{
+      ev.preventDefault();
+      ev.stopPropagation();
       if (opt.disabled) return;
       select.value = opt.value;
       select.dispatchEvent(new Event('change', { bubbles: true }));
@@ -1124,14 +1150,29 @@ function initCustomSelect(select){
   const menu = document.createElement('ul');
   menu.className = 'custom-select-menu';
   menu.setAttribute('role', 'listbox');
-  root.append(button, menu);
+  menu.hidden = true;
+  root.append(button);
   select.insertAdjacentElement('afterend', root);
+  document.body.appendChild(menu);
   customSelectMap.set(select, { root, button, label, menu });
-  button.addEventListener('click', ()=>{
+  button.addEventListener('pointerdown', (ev)=>{
+    ev.preventDefault();
+    ev.stopPropagation();
+  });
+  button.addEventListener('click', (ev)=>{
+    ev.preventDefault();
+    ev.stopPropagation();
     const isOpen = root.classList.contains('open');
     closeAllCustomSelects(select);
-    root.classList.toggle('open', !isOpen);
-    button.setAttribute('aria-expanded', String(!isOpen));
+    const shouldOpen = !isOpen;
+    root.classList.toggle('open', shouldOpen);
+    menu.classList.toggle('open', shouldOpen);
+    menu.hidden = !shouldOpen;
+    button.setAttribute('aria-expanded', String(shouldOpen));
+    if (shouldOpen){
+      activeCustomSelect = select;
+      positionCustomSelectMenu(select);
+    }
   });
   button.addEventListener('keydown', (ev)=>{
     if (ev.key === 'Escape') { closeCustomSelect(select); return; }
@@ -1140,7 +1181,11 @@ function initCustomSelect(select){
       if (!root.classList.contains('open')) {
         closeAllCustomSelects(select);
         root.classList.add('open');
+        menu.classList.add('open');
+        menu.hidden = false;
         button.setAttribute('aria-expanded', 'true');
+        activeCustomSelect = select;
+        positionCustomSelectMenu(select);
       }
       const first = menu.querySelector('.custom-select-option:not(.is-disabled)');
       first?.focus();
@@ -1164,16 +1209,25 @@ function initCustomSelect(select){
       items[(idx - 1 + items.length) % items.length]?.focus();
     }
   });
+  menu.addEventListener('pointerdown', (ev)=>{
+    ev.preventDefault();
+    ev.stopPropagation();
+  });
+  menu.addEventListener('click', (ev)=>{
+    ev.stopPropagation();
+  });
   select.addEventListener('change', ()=> refreshCustomSelect(select));
   refreshCustomSelect(select);
 }
 function refreshCustomSelects(){
-  [optPreset, optMode].forEach(select=>{
+  [optPreset, optMode, historyFilter].forEach(select=>{
     if (!select) return;
     if (!customSelectMap.has(select)) initCustomSelect(select);
     refreshCustomSelect(select);
   });
 }
+window.addEventListener('resize', ()=>{ if (activeCustomSelect) positionCustomSelectMenu(activeCustomSelect); });
+window.addEventListener('scroll', ()=>{ if (activeCustomSelect) positionCustomSelectMenu(activeCustomSelect); }, true);
 function hexToRgb(hex){
   const s = String(hex || '').trim();
   const m = s.match(/^#?([a-f0-9]{6})$/i);
