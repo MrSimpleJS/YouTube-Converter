@@ -319,6 +319,17 @@ doLogin = async function(name, pass){
 
 // Close overlay with Escape
 document.addEventListener('keydown', (e)=>{ if (e.key==='Escape' && authOverlay && !authOverlay.hidden){ hideAuth(); } });
+document.addEventListener('pointerdown', (ev)=>{
+  customSelectMap.forEach(({ root, button })=>{
+    if (!root.contains(ev.target) && ev.target !== button) {
+      root.classList.remove('open');
+      button.setAttribute('aria-expanded', 'false');
+    }
+  });
+});
+document.addEventListener('keydown', (ev)=>{
+  if (ev.key === 'Escape') closeAllCustomSelects();
+});
 function setTheme(t){
   document.documentElement.setAttribute('data-theme', t);
   try{ localStorage.setItem('theme', t); }catch(_){}
@@ -350,11 +361,11 @@ const t = {
     checkerLabel: 'Schachbrett (Transparenz)',
     checkerToggleLabel: 'anzeigen',
     presetOriginal: 'Original',
-    presetYoutubeThumb: 'YouTube Thumbnail (1280—720)',
-    presetYoutubeHD: 'YouTube HD (1920—1080)',
-    presetInstagramPost: 'Instagram Post (1080—1080)',
-    presetInstagramStory: 'Instagram Story (1080—1920)',
-    presetTikTokCover: 'TikTok Cover (1080—1920)',
+    presetYoutubeThumb: 'YouTube Thumbnail (1280×720)',
+    presetYoutubeHD: 'YouTube HD (1920×1080)',
+    presetInstagramPost: 'Instagram Post (1080×1080)',
+    presetInstagramStory: 'Instagram Story (1080×1920)',
+    presetTikTokCover: 'TikTok Cover (1080×1920)',
     presetLabel: 'Preset (Größe)',
     resizeLabel: 'Resize-Modus',
     jpgBgLabel: 'JPG Hintergrund',
@@ -516,11 +527,11 @@ const t = {
     checkerLabel: 'Checkerboard (transparency)',
     checkerToggleLabel: 'show',
     presetOriginal: 'Original',
-    presetYoutubeThumb: 'YouTube Thumbnail (1280Ã—720)',
-    presetYoutubeHD: 'YouTube HD (1920Ã—1080)',
-    presetInstagramPost: 'Instagram Post (1080Ã—1080)',
-    presetInstagramStory: 'Instagram Story (1080Ã—1920)',
-    presetTikTokCover: 'TikTok Cover (1080Ã—1920)',
+    presetYoutubeThumb: 'YouTube Thumbnail (1280×720)',
+    presetYoutubeHD: 'YouTube HD (1920×1080)',
+    presetInstagramPost: 'Instagram Post (1080×1080)',
+    presetInstagramStory: 'Instagram Story (1080×1920)',
+    presetTikTokCover: 'TikTok Cover (1080×1920)',
     presetLabel: 'Preset (size)',
     resizeLabel: 'Resize mode',
     jpgBgLabel: 'JPG background',
@@ -674,6 +685,10 @@ const t = {
     themeToggleAria: 'Toggle appearance',
   }
 };
+t.de.ytPopupBlocked = 'Popup blockiert. Bitte Popups erlauben und erneut versuchen.';
+t.en.ytPopupBlocked = 'Popup blocked. Please allow popups and try again.';
+t.de.ytDoneOpenedBlocked = 'Fertig: {ok}/{total} geöffnet. {blocked} durch Popup-Blocker verhindert.';
+t.en.ytDoneOpenedBlocked = 'Done: {ok}/{total} opened. {blocked} blocked by the popup blocker.';
 function L(key, vars){
   const dict = t[currentLang] || t.de;
   let s = dict[key];
@@ -1029,6 +1044,7 @@ function loadSettings(){
   if (optPreviewBg) optPreviewBg.checked = !!settings.previewBg;
   applyChecker();
   updateDimBadge();
+  refreshCustomSelects();
 }
 function saveSettings(){
   try{ localStorage.setItem(LS_KEY, JSON.stringify(settings)); }catch(_){}
@@ -1041,6 +1057,122 @@ function saveSettings(){
 function applyChecker(){
   if (settings.checker) document.body.classList.remove('no-checker');
   else document.body.classList.add('no-checker');
+}
+const customSelectMap = new Map();
+function closeCustomSelect(select){
+  const parts = customSelectMap.get(select);
+  if (!parts) return;
+  parts.root.classList.remove('open');
+  parts.button.setAttribute('aria-expanded', 'false');
+}
+function closeAllCustomSelects(except){
+  customSelectMap.forEach((_, select)=>{
+    if (except && select === except) return;
+    closeCustomSelect(select);
+  });
+}
+function refreshCustomSelect(select){
+  const parts = customSelectMap.get(select);
+  if (!parts) return;
+  const options = Array.from(select.options);
+  const selected = options.find(opt => opt.value === select.value) || options[0] || null;
+  parts.label.textContent = selected ? selected.textContent : '';
+  parts.menu.innerHTML = '';
+  options.forEach(opt=>{
+    const li = document.createElement('li');
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'custom-select-option';
+    if (opt.disabled) btn.classList.add('is-disabled');
+    if (opt.value === select.value) btn.classList.add('is-selected');
+    btn.textContent = opt.textContent;
+    btn.disabled = !!opt.disabled;
+    btn.setAttribute('role', 'option');
+    btn.setAttribute('aria-selected', opt.value === select.value ? 'true' : 'false');
+    btn.addEventListener('click', ()=>{
+      if (opt.disabled) return;
+      select.value = opt.value;
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+      refreshCustomSelect(select);
+      closeCustomSelect(select);
+      parts.button.focus();
+    });
+    li.appendChild(btn);
+    parts.menu.appendChild(li);
+  });
+}
+function initCustomSelect(select){
+  if (!select || customSelectMap.has(select)) return;
+  select.classList.add('custom-select-native');
+  select.hidden = true;
+  select.tabIndex = -1;
+  select.disabled = true;
+  select.setAttribute('aria-hidden', 'true');
+  const root = document.createElement('div');
+  root.className = 'custom-select';
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'custom-select-trigger';
+  button.setAttribute('aria-haspopup', 'listbox');
+  button.setAttribute('aria-expanded', 'false');
+  const label = document.createElement('span');
+  label.className = 'custom-select-label';
+  const caret = document.createElement('span');
+  caret.className = 'custom-select-caret';
+  caret.setAttribute('aria-hidden', 'true');
+  button.append(label, caret);
+  const menu = document.createElement('ul');
+  menu.className = 'custom-select-menu';
+  menu.setAttribute('role', 'listbox');
+  root.append(button, menu);
+  select.insertAdjacentElement('afterend', root);
+  customSelectMap.set(select, { root, button, label, menu });
+  button.addEventListener('click', ()=>{
+    const isOpen = root.classList.contains('open');
+    closeAllCustomSelects(select);
+    root.classList.toggle('open', !isOpen);
+    button.setAttribute('aria-expanded', String(!isOpen));
+  });
+  button.addEventListener('keydown', (ev)=>{
+    if (ev.key === 'Escape') { closeCustomSelect(select); return; }
+    if (ev.key === 'ArrowDown' || ev.key === 'Enter' || ev.key === ' ') {
+      ev.preventDefault();
+      if (!root.classList.contains('open')) {
+        closeAllCustomSelects(select);
+        root.classList.add('open');
+        button.setAttribute('aria-expanded', 'true');
+      }
+      const first = menu.querySelector('.custom-select-option:not(.is-disabled)');
+      first?.focus();
+    }
+  });
+  menu.addEventListener('keydown', (ev)=>{
+    const items = Array.from(menu.querySelectorAll('.custom-select-option:not(.is-disabled)'));
+    const idx = items.indexOf(document.activeElement);
+    if (ev.key === 'Escape') {
+      ev.preventDefault();
+      closeCustomSelect(select);
+      button.focus();
+      return;
+    }
+    if (ev.key === 'ArrowDown') {
+      ev.preventDefault();
+      items[(idx + 1 + items.length) % items.length]?.focus();
+    }
+    if (ev.key === 'ArrowUp') {
+      ev.preventDefault();
+      items[(idx - 1 + items.length) % items.length]?.focus();
+    }
+  });
+  select.addEventListener('change', ()=> refreshCustomSelect(select));
+  refreshCustomSelect(select);
+}
+function refreshCustomSelects(){
+  [optPreset, optMode].forEach(select=>{
+    if (!select) return;
+    if (!customSelectMap.has(select)) initCustomSelect(select);
+    refreshCustomSelect(select);
+  });
 }
 function hexToRgb(hex){
   const s = String(hex || '').trim();
@@ -1057,18 +1189,23 @@ function applyTransparencyToCanvas(targetCtx, w, h){
   if (!settings.transparent) return;
   const rgb = hexToRgb(settings.jpgBg || '#ffffff');
   if (!rgb) return;
-  const img = targetCtx.getImageData(0, 0, w, h);
-  const data = img.data;
-  const tolerance = 26;
-  for (let i=0; i<data.length; i+=4){
-    const dr = Math.abs(data[i] - rgb.r);
-    const dg = Math.abs(data[i+1] - rgb.g);
-    const db = Math.abs(data[i+2] - rgb.b);
-    if (dr <= tolerance && dg <= tolerance && db <= tolerance){
-      data[i+3] = 0;
+  try{
+    const img = targetCtx.getImageData(0, 0, w, h);
+    const data = img.data;
+    const tolerance = 26;
+    for (let i=0; i<data.length; i+=4){
+      const dr = Math.abs(data[i] - rgb.r);
+      const dg = Math.abs(data[i+1] - rgb.g);
+      const db = Math.abs(data[i+2] - rgb.b);
+      if (dr <= tolerance && dg <= tolerance && db <= tolerance){
+        data[i+3] = 0;
+      }
     }
+    targetCtx.putImageData(img, 0, 0);
+  }catch(err){
+    // Cross-origin previews can taint the canvas. Skip transparency processing there.
+    if (!(err && err.name === 'SecurityError')) throw err;
   }
-  targetCtx.putImageData(img, 0, 0);
 }
 function parsePreset(p){
   const key = normalizePresetValue(p);
@@ -1347,12 +1484,24 @@ async function loadHistoryPreview(entry){
     const w = entry && entry.size && entry.size.w || 0;
     const h = entry && entry.size && entry.size.h || 0;
     const isExternal = /^https?:\/\//i.test(src);
+    if (isExternal){
+      selectedHistoryTainted = true;
+      showExternalPreview(src, (w&&h)?{w,h}:null);
+      showToast(localText('Externe Vorschau geladen. Export aus Verlauf ist hier eingeschränkt.', 'External preview loaded. Export from history is limited here.'), 'info');
+      return;
+    }
     // Draw; use contain to preserve full image by default
     await rRenderToCanvasFromURL(src, (w&&h)?{w,h}:undefined, 'contain');
-    if (isExternal) selectedHistoryTainted = true;
   }catch(err){ console.warn('History preview failed:', err); }
 }
 function downloadPreviewAs(kind){
+  if (selectedHistoryTainted && selectedHistoryEntry && /^https?:\/\//i.test(selectedHistoryEntry.thumb || '')){
+    const a = document.createElement('a');
+    a.download = selectedHistoryEntry.name || '';
+    a.href = selectedHistoryEntry.thumb;
+    try{ a.click(); }catch(_){ openWindowOrThrow(selectedHistoryEntry.thumb); }
+    return;
+  }
   try{
     const mime = kind==='jpg' ? 'image/jpeg' : 'image/png';
     const quality = kind==='jpg' ? (settings.jpgQ||92)/100 : undefined;
@@ -1479,6 +1628,18 @@ let items = []; // {name: string, svg: string}
 let currentIndex = -1;
 let previewMotionTimer = null;
 const previewWrap = document.querySelector('.preview-wrap');
+const externalPreviewImg = document.createElement('img');
+externalPreviewImg.alt = 'preview';
+externalPreviewImg.hidden = true;
+externalPreviewImg.style.display = 'none';
+externalPreviewImg.style.width = '100%';
+externalPreviewImg.style.height = 'auto';
+externalPreviewImg.style.borderRadius = '18px';
+externalPreviewImg.style.border = '1px solid var(--border-strong)';
+externalPreviewImg.style.boxShadow = '0 18px 34px rgba(0,0,0,.12)';
+externalPreviewImg.style.objectFit = 'contain';
+externalPreviewImg.style.background = 'transparent';
+if (previewWrap) previewWrap.insertBefore(externalPreviewImg, dimBadge || null);
 const toastRoot = document.createElement('div');
 toastRoot.className = 'toast-stack';
 document.body.appendChild(toastRoot);
@@ -1503,6 +1664,28 @@ function pulsePreview(mode){
   if (mode === 'loading'){ previewWrap.classList.add('is-loading'); return; }
   previewWrap.classList.add('is-updated');
   previewMotionTimer = setTimeout(()=> previewWrap.classList.remove('is-updated'), 520);
+}
+function showCanvasPreview(){
+  canvas.hidden = false;
+  canvas.style.display = 'block';
+  externalPreviewImg.hidden = true;
+  externalPreviewImg.style.display = 'none';
+  externalPreviewImg.removeAttribute('src');
+}
+function showExternalPreview(src, size){
+  if (!src) return;
+  canvas.hidden = true;
+  canvas.style.display = 'none';
+  externalPreviewImg.src = src;
+  externalPreviewImg.hidden = false;
+  externalPreviewImg.style.display = 'block';
+  if (size && size.w && size.h){
+    canvas.width = size.w;
+    canvas.height = size.h;
+    updateDimBadge();
+  }
+  hasPreview = true;
+  pulsePreview('updated');
 }
 function setDropzoneState(el, active){
   if (!el) return;
@@ -1535,6 +1718,7 @@ function extractSvgSize(svgText){
 }
 async function renderToCanvas(svgText, scale=1){
   pulsePreview('loading');
+  showCanvasPreview();
   const svg = sanitizeSVG(svgText);
   const blob = new Blob([svg], { type: 'image/svg+xml' });
   const url = URL.createObjectURL(blob);
@@ -1708,10 +1892,36 @@ document.addEventListener('click', (e)=>{
 
 // Surface unexpected errors in the UI so issues don't silently disable the app
 window.addEventListener('error', (ev)=>{
+  const rawMessage = String(ev.message || (ev.error && ev.error.message) || '');
+  if (/tainted by cross-origin data|getImageData/i.test(rawMessage) || (ev.error && ev.error.name === 'SecurityError')){
+    if (statusEl) statusEl.textContent = localText(
+      'Externe Vorschau geladen. Canvas-Bearbeitung ist für dieses Bild im Browser gesperrt.',
+      'External preview loaded. Canvas editing is blocked for this image in the browser.'
+    );
+    if (rStatusEl) rStatusEl.textContent = statusEl ? statusEl.textContent : localText(
+      'Externe Vorschau geladen. Canvas-Bearbeitung ist für dieses Bild im Browser gesperrt.',
+      'External preview loaded. Canvas editing is blocked for this image in the browser.'
+    );
+    ev.preventDefault();
+    return;
+  }
   const msg = L('errorPrefix', { message: ev.message || (ev.error && ev.error.message) || 'Unknown' });
   if (statusEl) statusEl.textContent = msg; if (rStatusEl) rStatusEl.textContent = msg;
 });
 window.addEventListener('unhandledrejection', (ev)=>{
+  const rawReason = String((ev.reason && ev.reason.message) || ev.reason || '');
+  if (/tainted by cross-origin data|getImageData/i.test(rawReason) || (ev.reason && ev.reason.name === 'SecurityError')){
+    if (statusEl) statusEl.textContent = localText(
+      'Externe Vorschau geladen. Canvas-Bearbeitung ist für dieses Bild im Browser gesperrt.',
+      'External preview loaded. Canvas editing is blocked for this image in the browser.'
+    );
+    if (rStatusEl) rStatusEl.textContent = statusEl ? statusEl.textContent : localText(
+      'Externe Vorschau geladen. Canvas-Bearbeitung ist für dieses Bild im Browser gesperrt.',
+      'External preview loaded. Canvas editing is blocked for this image in the browser.'
+    );
+    ev.preventDefault();
+    return;
+  }
   const msg = L('errorPrefix', { message: (ev.reason && ev.reason.message) || ev.reason || 'Unhandled rejection' });
   if (statusEl) statusEl.textContent = msg; if (rStatusEl) rStatusEl.textContent = msg;
 });
@@ -1738,6 +1948,7 @@ function setRButtonsEnabled(enabled){ [rBtnSinglePNG, rBtnSingleJPG, rBtnAllPNG,
 function rWithStatus(msg){ if(rStatusEl) rStatusEl.textContent = msg; }
 function rBaseName(name){ return (name || 'image').replace(/\.[^.]+$/, ''); }
 function rEnsureUnique(base, taken){ let n = base, i=2; while(taken.has(n)) n = `${base} (${i++})`; taken.add(n); return n; }
+function isExternalCanvasSource(url){ return /^https?:\/\//i.test(String(url || '')); }
 function refreshRList(){
   if (!rFileListEl) return;
   rFileListEl.innerHTML = '';
@@ -1756,8 +1967,10 @@ function refreshRList(){
 }
 async function rRenderToCanvasFromURL(url, forceSize, forceMode){
   pulsePreview('loading');
+  showCanvasPreview();
   await new Promise((resolve, reject)=>{
     const img = new Image();
+    const externalSource = isExternalCanvasSource(url);
     img.onload = ()=>{
       try{
         const preset = forceSize ? null : parsePreset(settings.preset);
@@ -1768,9 +1981,9 @@ async function rRenderToCanvasFromURL(url, forceSize, forceMode){
         else { ctx.clearRect(0,0,canvas.width,canvas.height); }
         if (preset || forceSize) drawFitted(img, tW, tH, forceMode || settings.mode || 'contain');
         else ctx.drawImage(img, 0, 0);
-        applyTransparencyToCanvas(ctx, canvas.width, canvas.height);
-
-        Promise.resolve(applyPreviewQualityIfNeeded()).then(()=>{ updateDimBadge(); hasPreview = true; pulsePreview('updated'); resolve(); });
+        if (!externalSource) applyTransparencyToCanvas(ctx, canvas.width, canvas.height);
+        const postProcess = externalSource ? Promise.resolve() : Promise.resolve(applyPreviewQualityIfNeeded());
+        postProcess.then(()=>{ updateDimBadge(); hasPreview = true; pulsePreview('updated'); resolve(); });
       } finally { /* Do not revoke here; URLs are reused for export. Revoke on clear instead. */ }
     };
     img.onerror = reject; img.src = url;
@@ -1943,6 +2156,16 @@ function ytDirectUrl(vid, key){ return `https://img.youtube.com/vi/${encodeURICo
 function ytProxyUrl(vid, key){ return `/yt-thumb?vid=${encodeURIComponent(vid)}&res=${key}`; }
 
 function ytWithStatus(msg){ if (ytStatusEl) ytStatusEl.textContent = msg; }
+function openWindowOrThrow(url){
+  const popup = window.open(url, '_blank', 'noopener');
+  if (!popup) {
+    const err = new Error('popup_blocked');
+    err.code = 'popup_blocked';
+    throw err;
+  }
+  try { popup.opener = null; } catch (_) {}
+  return popup;
+}
 function ytSizeLabel(key){
   const sz = YT_SIZE[key] || [0,0];
   return `${key} ${sz[0]}x${sz[1]}`;
@@ -1968,16 +2191,20 @@ async function ytDownloadOne(vid, key){
       downloadDataUrl(`${vid}_${key}.jpg`, href);
       setTimeout(()=>{ try{ URL.revokeObjectURL(href); }catch(_){} }, 250);
     }catch(_){
-      window.open(direct, '_blank');
+      openWindowOrThrow(direct);
     }
     const sz = YT_SIZE[key] || [0,0];
     recordExport({ name: `${vid}_${key}.jpg`, type: 'img->jpg', size: { w: sz[0], h: sz[1] }, thumb: direct });
     logEvent('yt.download', { vid, key });
     ytWithStatus(localText(`Thumbnail geladen: ${key}`, `Thumbnail downloaded: ${key}`));
     showToast(localText(`YouTube-Thumbnail: ${key}`, `YouTube thumbnail: ${key}`), 'success');
-  }catch(_){
-    ytWithStatus(L('ytDownloadFailed'));
-    showToast(localText(`Download fehlgeschlagen: ${key}`, `Download failed: ${key}`), 'error');
+  }catch(err){
+    const popupBlocked = err && err.code === 'popup_blocked';
+    ytWithStatus(popupBlocked ? L('ytPopupBlocked') : L('ytDownloadFailed'));
+    showToast(
+      popupBlocked ? L('ytPopupBlocked') : localText(`Download fehlgeschlagen: ${key}`, `Download failed: ${key}`),
+      'error'
+    );
   }
 }
 function parseYouTubeInput(raw){
@@ -2026,7 +2253,7 @@ function ytBuildItem(vid){
   const prevBtn = document.createElement('button'); prevBtn.className='btn ghost yt-prev-btn'; prevBtn.textContent=L('ytPreviewBtn');
   prevBtn.addEventListener('click', async ()=>{
     try{
-      // Prefer maxres; fall back to hqdefault. Use cover to fill 1280×720 without Balken.
+      // Prefer maxres; fall back to hqdefault. Use cover to fill 1280×720 without bars.
       try{ await rRenderToCanvasFromURL(ytDirectUrl(vid,'maxresdefault'), { w:1280, h:720 }, 'cover'); }
       catch(_){ await rRenderToCanvasFromURL(ytDirectUrl(vid,'hqdefault'), { w:1280, h:720 }, 'cover'); }
       ytWithStatus(L('ytPreviewLoaded'));
@@ -2092,7 +2319,14 @@ function ytBuildRichItem(vid){
     open.type = 'button';
     open.className = 'btn ghost tiny';
     open.textContent = localText('Direkt', 'Open');
-    open.addEventListener('click', ()=> window.open(ytDirectUrl(vid, key), '_blank'));
+    open.addEventListener('click', ()=>{
+      try{
+        openWindowOrThrow(ytDirectUrl(vid, key));
+      }catch(err){
+        const popupBlocked = err && err.code === 'popup_blocked';
+        showToast(popupBlocked ? L('ytPopupBlocked') : L('ytDownloadFailed'), 'error');
+      }
+    });
     const download = document.createElement('button');
     download.type = 'button';
     download.className = 'btn tiny';
@@ -2129,7 +2363,7 @@ async function ytDownloadAll(){
 async function ytDownloadAllFor(vid){
   try{
     ytWithStatus(L('ytDownloading'));
-    let ok=0; let usedProxy=false, opened=0;
+    let ok=0; let usedProxy=false, opened=0, blocked=0;
     for (const key of YT_RES){
       const prox = ytProxyUrl(vid, key);
       const direct = ytDirectUrl(vid, key);
@@ -2145,16 +2379,30 @@ async function ytDownloadAllFor(vid){
       }catch(_){ /* proxy not available or image missing */ }
       if (!done){
         // Fallback: open direct URL (user can save manually); multiple opens may be blocked
-        try{ window.open(direct, '_blank'); opened++; ok++; }catch(_){ }
+        try{
+          openWindowOrThrow(direct);
+          opened++;
+          ok++;
+          done = true;
+        }catch(err){
+          if (err && err.code === 'popup_blocked') {
+            blocked++;
+            continue;
+          }
+          throw err;
+        }
       }
+      if (!done) continue;
       // Record history entry with external thumb and known size (best effort)
       const sz = YT_SIZE[key] || [0,0];
       recordExport({ name: `${vid}_${key}.jpg`, type: 'img->jpg', size: { w: sz[0], h: sz[1] }, thumb: direct });
       logEvent('yt.download', { vid, key });
     }
-    const msg = usedProxy ? L('ytDoneDownloaded', { ok, total: YT_RES.length }) : L('ytDoneOpened', { ok, total: YT_RES.length });
+    const msg = blocked
+      ? L('ytDoneOpenedBlocked', { ok, total: YT_RES.length, blocked })
+      : (usedProxy ? L('ytDoneDownloaded', { ok, total: YT_RES.length }) : L('ytDoneOpened', { ok, total: YT_RES.length }));
     ytWithStatus(msg);
-    showToast(msg, usedProxy ? 'success' : 'info');
+    showToast(msg, blocked ? 'error' : (usedProxy ? 'success' : 'info'));
   }catch(err){ ytWithStatus(L('ytDownloadFailed')); showToast(L('ytDownloadFailed'), 'error'); }
 }
 if (ytFetchBtn) ytFetchBtn.addEventListener('click', ytFetch);

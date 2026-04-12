@@ -22,11 +22,13 @@
 <body>
   <div class="container">
     <header class="hero">
-      <div class="hero-copy">
-  <h1 id="title">YouTube Thumbnail Konverter</h1>
-        <p id="subtitle" class="muted">Lade ein SVG und exportiere es als PNG in YouTube‑Größe.</p>
-      </div>
-      <div class="toolbar hero-toolbar">
+      <div class="hero-shell">
+        <div class="hero-copy">
+          <div class="hero-kicker">Creator Toolkit</div>
+          <h1 id="title">YouTube Thumbnail Konverter</h1>
+          <p id="subtitle" class="muted">Lade ein SVG und exportiere es als PNG in YouTube‑Größe.</p>
+        </div>
+        <div class="toolbar hero-toolbar">
         <!-- Hidden native select as fallback/assistive tech -->
         <select id="langSelect" class="visually-hidden">
           <option value="de">Deutsch</option>
@@ -44,6 +46,7 @@
         <span id="globalStats" class="pill stats-pill" aria-live="polite" title="Global stats">Images: 0 • Downloads: 0</span>
         <!-- User Switcher temporarily removed -->
         <button id="themeToggle" class="btn ghost" aria-label="Darstellung umschalten">🌙&nbsp;<span id="themeLabel">Dunkel</span></button>
+        </div>
       </div>
     </header>
 
@@ -171,7 +174,7 @@
           </label>
           <label class="field">
             <span id="presetLabel" class="muted">Preset (Größe)</span>
-            <select id="optPreset" class="input">
+            <select id="optPreset" class="input custom-select-native" hidden aria-hidden="true" tabindex="-1">
               <option id="optOriginal" value="original">Original</option>
               <option id="opt1280" value="1280x720">1280×720</option>
               <option id="opt1920" value="1920x1080">1920×1080</option>
@@ -181,7 +184,7 @@
           </label>
           <label class="field">
             <span id="resizeLabel" class="muted">Resize-Modus</span>
-            <select id="optMode" class="input">
+            <select id="optMode" class="input custom-select-native" hidden aria-hidden="true" tabindex="-1">
               <option value="contain">Contain</option>
               <option value="cover">Cover</option>
               <option value="stretch">Stretch</option>
