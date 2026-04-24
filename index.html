@@ -163,6 +163,40 @@
       </div>
     </div>
 
+    <!-- PDF Converter -->
+    <div class="row" style="margin-top:20px">
+      <div class="card feature-card pdf-card" style="min-width:280px;flex:1 1 700px">
+        <div class="card-header">
+          <h3 id="pdfCardTitle" style="margin:0">PDF zu DOCX</h3>
+          <div class="kebab-wrap">
+            <button class="kebab-toggle" type="button" aria-label="Aktionen" aria-expanded="false" data-menu="pdfMenu">â‹¯</button>
+            <ul id="pdfMenu" class="kebab-menu" role="menu" aria-label="PDF Aktionen">
+              <li><button id="pdfMenuDownload" class="menu-item" type="button" data-action="pdfDownloadDocx">Zu DOCX (einzeln)</button></li>
+              <li><button id="pdfMenuDownloadAll" class="menu-item" type="button" data-action="pdfDownloadAllDocx">Alle zu DOCX</button></li>
+              <li><button id="pdfMenuClear" class="menu-item danger" type="button" data-action="pdfClearList">Liste leeren</button></li>
+            </ul>
+          </div>
+        </div>
+        <div class="dropzone" id="pdfDropzone" aria-label="PDFs hier ablegen oder Ã¼ber Datei auswÃ¤hlen">
+          <input class="visually-hidden" type="file" id="pdfFile" accept=".pdf,application/pdf" multiple/>
+          <div class="picker">
+            <button id="openPdfPicker" class="pill" type="button" aria-controls="pdfFile">ðŸ“ PDFs auswÃ¤hlen</button>
+            <span id="pdfSelectedInfo" class="meta">Keine ausgewÃ¤hlt</span>
+          </div>
+          <p id="pdfDropHint" class="muted" style="margin:8px 6px 0">Oder per Drag & Drop hier ablegen.</p>
+        </div>
+        <div class="controls actions">
+          <button class="btn" id="pdfDownloadDocx" type="button">Zu DOCX (einzeln)</button>
+          <button class="btn secondary" id="pdfDownloadAllDocx" type="button">Alle zu DOCX</button>
+        </div>
+        <div class="controls actions">
+          <button class="btn danger" id="pdfClearList" type="button">Liste leeren</button>
+        </div>
+        <p id="pdfStatus" class="muted status" aria-live="polite">Keine PDFs geladen.</p>
+        <ul id="pdfFileList" class="file-list" aria-label="Geladene PDFs"></ul>
+      </div>
+    </div>
+
     <!-- Settings -->
     <div class="row" style="margin-top:20px">
       <div class="card settings-card" style="min-width:280px;flex:1 1 700px">
@@ -233,6 +267,7 @@
               <option value="svg->png">SVG → PNG</option>
               <option value="img->png">IMG → PNG</option>
               <option value="img->jpg">IMG → JPG</option>
+              <option value="pdf->docx">PDF → DOCX</option>
             </select>
           </label>
           <div style="display:flex;gap:8px;align-items:center">
@@ -373,6 +408,8 @@
       </div>
     </div>
   </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="./app.js"></script>
 </body>
 </html>

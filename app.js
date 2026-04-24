@@ -363,6 +363,7 @@ const t = {
     subtitle: 'Lade ein SVG und exportiere es als PNG in YouTube‑Größe.',
     previewTitle: 'Vorschau',
     rCardTitle: 'JPG/PNG Konverter',
+    pdfCardTitle: 'PDF zu DOCX',
     settingsTitle: 'Einstellungen',
     checkerLabel: 'Schachbrett (Transparenz)',
     checkerToggleLabel: 'anzeigen',
@@ -529,6 +530,7 @@ const t = {
     subtitle: 'Load an SVG and export it as a PNG in YouTube size.',
     previewTitle: 'Preview',
     rCardTitle: 'JPG/PNG Converter',
+    pdfCardTitle: 'PDF to DOCX',
     settingsTitle: 'Settings',
     checkerLabel: 'Checkerboard (transparency)',
     checkerToggleLabel: 'show',
@@ -695,6 +697,34 @@ t.de.ytPopupBlocked = 'Popup blockiert. Bitte Popups erlauben und erneut versuch
 t.en.ytPopupBlocked = 'Popup blocked. Please allow popups and try again.';
 t.de.ytDoneOpenedBlocked = 'Fertig: {ok}/{total} geöffnet. {blocked} durch Popup-Blocker verhindert.';
 t.en.ytDoneOpenedBlocked = 'Done: {ok}/{total} opened. {blocked} blocked by the popup blocker.';
+t.de.openPdfPicker = 'PDFs auswÃ¤hlen';
+t.en.openPdfPicker = 'Select PDFs';
+t.de.pdfDownloadDocx = 'Zu DOCX (einzeln)';
+t.en.pdfDownloadDocx = 'To DOCX (single)';
+t.de.pdfDownloadAllDocx = 'Alle zu DOCX';
+t.en.pdfDownloadAllDocx = 'All to DOCX';
+t.de.pdfClearListBtn = 'Liste leeren';
+t.en.pdfClearListBtn = 'Clear list';
+t.de.pdfStatusNone = 'Keine PDFs geladen.';
+t.en.pdfStatusNone = 'No PDFs loaded.';
+t.de.pdfLoadedNTotal = '{n} PDF(s) geladen. Insgesamt: {total}.';
+t.en.pdfLoadedNTotal = '{n} PDF(s) loaded. Total: {total}.';
+t.de.selectedPdf = 'AusgewÃ¤hlt: {name} ({index}/{total})';
+t.en.selectedPdf = 'Selected: {name} ({index}/{total})';
+t.de.invalidPdfs = 'Keine gÃ¼ltigen PDFs gefunden.';
+t.en.invalidPdfs = 'No valid PDFs found.';
+t.de.pdfDepsMissing = 'PDF-Konverter konnte nicht geladen werden. Bitte Internetverbindung prÃ¼fen.';
+t.en.pdfDepsMissing = 'PDF converter could not load. Please check your internet connection.';
+t.de.pdfConverting = 'Konvertiere PDF zu DOCX...';
+t.en.pdfConverting = 'Converting PDF to DOCX...';
+t.de.pdfNoText = 'Kein Text im PDF gefunden.';
+t.en.pdfNoText = 'No text found in the PDF.';
+t.de.alertPickPdf = 'Bitte zuerst ein PDF laden und auswÃ¤hlen.';
+t.en.alertPickPdf = 'Please load and select a PDF first.';
+t.de.alertLoadPdfs = 'Bitte zuerst PDFs laden.';
+t.en.alertLoadPdfs = 'Please load PDFs first.';
+t.de.historyTypeLabel['pdf->docx'] = 'PDF â†’ DOCX';
+t.en.historyTypeLabel['pdf->docx'] = 'PDF â†’ DOCX';
 function L(key, vars){
   const dict = t[currentLang] || t.de;
   let s = dict[key];
@@ -711,6 +741,7 @@ function applyLang(lang){
   setText('subtitle', dict.subtitle);
   setText('previewTitle', dict.previewTitle);
   setText('rCardTitle', dict.rCardTitle);
+  setText('pdfCardTitle', dict.pdfCardTitle);
   setText('settingsTitle', dict.settingsTitle);
   setText('checkerLabel', dict.checkerLabel);
   setText('checkerToggleLabel', dict.checkerToggleLabel);
@@ -750,8 +781,10 @@ function applyLang(lang){
   // Buttons
   setText('openPicker', dict.openPicker);
   setText('openRPicker', dict.openRPicker);
+  setText('openPdfPicker', dict.openPdfPicker);
   setText('svgDropHint', dict.dropHint || 'Or drag & drop files here.');
   setText('rDropHint', dict.dropHint || 'Or drag & drop files here.');
+  setText('pdfDropHint', dict.dropHint || 'Or drag & drop files here.');
   setText('download', dict.downloadBtn);
   setText('download2x', dict.download2xBtn);
   setText('downloadAll', dict.downloadAllBtn);
@@ -763,6 +796,12 @@ function applyLang(lang){
   setText('rDownloadAllJPG', dict.rDownloadAllJPG);
   setText('loadFromUrl', dict.loadFromUrlBtn);
   setText('rClearList', dict.rClearListBtn);
+  setText('pdfDownloadDocx', dict.pdfDownloadDocx);
+  setText('pdfDownloadAllDocx', dict.pdfDownloadAllDocx);
+  setText('pdfClearList', dict.pdfClearListBtn);
+  setText('pdfMenuDownload', dict.pdfDownloadDocx);
+  setText('pdfMenuDownloadAll', dict.pdfDownloadAllDocx);
+  setText('pdfMenuClear', dict.pdfClearListBtn);
   setText('exportsTitle', dict.exportsTitle);
   setText('exportsHint', dict.exportsHint);
   // Save hint baseline
@@ -827,6 +866,7 @@ function applyLang(lang){
   // Initialize default statuses for sections if still untouched
   const sEl = document.getElementById('status'); if (sEl && (/Kein SVG geladen\.|No SVG loaded\./i.test(sEl.textContent) || !sEl.textContent)) sEl.textContent = dict.svgStatusNone;
   const rsEl = document.getElementById('rStatus'); if (rsEl && (/Keine Bilder geladen\.|No images loaded\./i.test(rsEl.textContent) || !rsEl.textContent)) rsEl.textContent = dict.rStatusNone;
+  const psEl = document.getElementById('pdfStatus'); if (psEl && (/Keine PDFs geladen\.|No PDFs loaded\./i.test(psEl.textContent) || !psEl.textContent)) psEl.textContent = dict.pdfStatusNone;
   if (langCurrent) langCurrent.textContent = (lang === 'en' ? 'English' : 'Deutsch');
   try{ localStorage.setItem(I18N_KEY, lang); }catch(_){ }
   try{ updateGlobalStats(); }catch(_){ }
@@ -1414,7 +1454,7 @@ function updateGlobalStats(){
   let images = 0;
   try {
     const hist = getHistory();
-    images = hist.filter(e => e && (e.type==='svg->png' || e.type==='img->png' || e.type==='img->jpg')).length;
+    images = hist.filter(e => e && (e.type==='svg->png' || e.type==='img->png' || e.type==='img->jpg' || e.type==='pdf->docx')).length;
   } catch(_) {}
   // Downloads: sum audit export/download events; batch uses 'ok' or 'total'
   let downloads = 0;
@@ -1422,8 +1462,8 @@ function updateGlobalStats(){
     const audit = getAudit();
     for (const e of audit){
       if (!e || !e.type) continue;
-      if (e.type === 'yt.download' || e.type === 'export.svg' || e.type === 'export.raster') downloads += 1;
-      else if (e.type === 'export.svg.all' || e.type === 'export.raster.all') downloads += (Number(e.data?.ok)||Number(e.data?.total)||0);
+      if (e.type === 'yt.download' || e.type === 'export.svg' || e.type === 'export.raster' || e.type === 'export.pdf') downloads += 1;
+      else if (e.type === 'export.svg.all' || e.type === 'export.raster.all' || e.type === 'export.pdf.all') downloads += (Number(e.data?.ok)||Number(e.data?.total)||0);
     }
   }catch(_){ }
   const li = (dict.statsImages || 'Images');
@@ -1484,10 +1524,15 @@ function renderHistory(){
   pageItems.forEach(e=>{
     const li=document.createElement('li'); li.className='file-item';
     const row = document.createElement('div'); row.className='export-row';
-    const img=document.createElement('img'); img.className='thumb'; img.alt='thumb'; img.src=e.thumb||''; row.appendChild(img);
+    if (e.thumb){
+      const img=document.createElement('img'); img.className='thumb'; img.alt='thumb'; img.src=e.thumb; row.appendChild(img);
+    } else {
+      const icon=document.createElement('span'); icon.className='doc-thumb'; icon.textContent=(e.type === 'pdf->docx') ? 'DOCX' : 'FILE'; row.appendChild(icon);
+    }
     const meta=document.createElement('div');
     const when=new Date(e.ts).toLocaleString();
-    meta.textContent=`${e.name} — ${e.type} — ${e.size?.w||'-'}×${e.size?.h||'-'} — ${when}`;
+    const sizeText = e.type === 'pdf->docx' ? `${e.size?.pages || '-'} pages` : `${e.size?.w||'-'}×${e.size?.h||'-'}`;
+    meta.textContent=`${e.name} — ${e.type} — ${sizeText} — ${when}`;
     row.appendChild(meta);
     li.appendChild(row);
     // attach data for preview
@@ -1918,6 +1963,9 @@ document.addEventListener('click', (e)=>{
       case 'rDownloadAllPNG': e.preventDefault(); rDownloadAll('png'); break;
       case 'rDownloadAllJPG': e.preventDefault(); rDownloadAll('jpg'); break;
       case 'rClearList': e.preventDefault(); if (rClearBtn && !rClearBtn.disabled) rClearBtn.click(); break;
+      case 'pdfDownloadDocx': e.preventDefault(); pdfDownloadSingle(); break;
+      case 'pdfDownloadAllDocx': e.preventDefault(); pdfDownloadAll(); break;
+      case 'pdfClearList': e.preventDefault(); if (pdfClearBtn && !pdfClearBtn.disabled) pdfClearBtn.click(); break;
       default: break;
     }
     // Close any open kebab menu after action
@@ -1928,6 +1976,7 @@ document.addEventListener('click', (e)=>{
   switch(btn.id){
     case 'openPicker': e.preventDefault(); if (fileInput) fileInput.click(); break;
     case 'openRPicker': e.preventDefault(); if (rFileInput) rFileInput.click(); break;
+    case 'openPdfPicker': e.preventDefault(); if (pdfFileInput) pdfFileInput.click(); break;
     case 'download': e.preventDefault(); download(1,''); break;
     case 'download2x': e.preventDefault(); download(2,'@2x'); break;
     case 'downloadAll': e.preventDefault(); downloadAll(1,''); break;
@@ -1939,6 +1988,9 @@ document.addEventListener('click', (e)=>{
     case 'rDownloadAllJPG': e.preventDefault(); rDownloadAll('jpg'); break;
     case 'loadFromUrl': e.preventDefault(); loadImageFromUrlToList(); break;
     case 'rClearList': e.preventDefault(); if (rClearBtn && !rClearBtn.disabled) rClearBtn.click(); break;
+    case 'pdfDownloadDocx': e.preventDefault(); pdfDownloadSingle(); break;
+    case 'pdfDownloadAllDocx': e.preventDefault(); pdfDownloadAll(); break;
+    case 'pdfClearList': e.preventDefault(); if (pdfClearBtn && !pdfClearBtn.disabled) pdfClearBtn.click(); break;
     case 'ytFetch': e.preventDefault(); ytFetch(); break;
     default: break;
   }
@@ -2198,6 +2250,167 @@ if (rBtnSingleJPG) rBtnSingleJPG.addEventListener('click', ()=> rDownloadSingle(
 if (rBtnAllPNG) rBtnAllPNG.addEventListener('click', ()=> rDownloadAll('png'));
 if (rBtnAllJPG) rBtnAllJPG.addEventListener('click', ()=> rDownloadAll('jpg'));
 setRButtonsEnabled(false);
+
+// ===== PDF to DOCX converter =====
+const pdfFileInput = document.getElementById('pdfFile');
+const pdfDropzone = document.getElementById('pdfDropzone');
+const openPdfPickerBtn = document.getElementById('openPdfPicker');
+const pdfSelectedInfo = document.getElementById('pdfSelectedInfo');
+const pdfFileListEl = document.getElementById('pdfFileList');
+const pdfStatusEl = document.getElementById('pdfStatus');
+const pdfClearBtn = document.getElementById('pdfClearList');
+const pdfBtnDocx = document.getElementById('pdfDownloadDocx');
+const pdfBtnAllDocx = document.getElementById('pdfDownloadAllDocx');
+let pdfItems = []; // { name: string, file: File }
+let pdfIndex = -1;
+
+function pdfWithStatus(msg){ if (pdfStatusEl) pdfStatusEl.textContent = msg; }
+function pdfBaseName(name){ return (name || 'document').replace(/\.[^.]+$/, ''); }
+function setPdfButtonsEnabled(enabled){ [pdfBtnDocx, pdfBtnAllDocx, pdfClearBtn].forEach(b=>{ if (b) b.disabled = !enabled; }); }
+function refreshPdfList(){
+  if (!pdfFileListEl) return;
+  pdfFileListEl.innerHTML = '';
+  pdfItems.forEach((it, idx)=>{
+    const li = document.createElement('li');
+    li.className = 'file-item' + (idx === pdfIndex ? ' active' : '');
+    li.style.animationDelay = `${Math.min(idx, 8) * 28}ms`;
+    li.textContent = it.name;
+    li.tabIndex = 0;
+    li.addEventListener('click', ()=> pdfSelect(idx));
+    li.addEventListener('keydown', e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); pdfSelect(idx); } });
+    pdfFileListEl.appendChild(li);
+  });
+  if (pdfSelectedInfo) pdfSelectedInfo.textContent = pdfItems.length ? L('selectedCount', { n: pdfItems.length }) : L('noneSelected');
+  setPdfButtonsEnabled(pdfItems.length > 0);
+}
+function pdfSelect(idx){
+  if (idx < 0 || idx >= pdfItems.length) return;
+  pdfIndex = idx;
+  refreshPdfList();
+  pdfWithStatus(L('selectedPdf', { name: pdfItems[pdfIndex].name, index: pdfIndex + 1, total: pdfItems.length }));
+}
+function pdfEnsureDeps(){
+  if (!window.pdfjsLib || !window.JSZip) throw new Error(L('pdfDepsMissing'));
+  try{
+    if (!window.pdfjsLib.GlobalWorkerOptions.workerSrc){
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+  }catch(_){}
+}
+function escapeXml(value){
+  return String(value == null ? '' : value).replace(/[<>&"']/g, ch => ({ '<':'&lt;', '>':'&gt;', '&':'&amp;', '"':'&quot;', "'":'&apos;' }[ch]));
+}
+function wordParagraph(text, style){
+  const safe = escapeXml(text || '').replace(/\r?\n/g, '</w:t></w:r></w:p><w:p><w:r><w:t xml:space="preserve">');
+  const pStyle = style ? `<w:pPr><w:pStyle w:val="${style}"/></w:pPr>` : '';
+  return `<w:p>${pStyle}<w:r><w:t xml:space="preserve">${safe}</w:t></w:r></w:p>`;
+}
+async function extractPdfText(file){
+  pdfEnsureDeps();
+  const data = new Uint8Array(await file.arrayBuffer());
+  const pdf = await window.pdfjsLib.getDocument({ data }).promise;
+  const pages = [];
+  for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++){
+    const page = await pdf.getPage(pageNum);
+    const content = await page.getTextContent();
+    const lines = [];
+    let lastY = null;
+    for (const item of content.items || []){
+      const str = String(item.str || '').trim();
+      if (!str) continue;
+      const y = item.transform && Number.isFinite(item.transform[5]) ? Math.round(item.transform[5]) : null;
+      if (lastY != null && y != null && Math.abs(y - lastY) > 5) lines.push('\n');
+      lines.push(str);
+      lastY = y;
+    }
+    pages.push(lines.join(' ').replace(/\s+\n\s+/g, '\n').replace(/[ \t]{2,}/g, ' ').trim());
+  }
+  return pages;
+}
+async function makeDocxBlob(title, pages){
+  const zip = new window.JSZip();
+  zip.file('[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>');
+  zip.folder('_rels').file('.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>');
+  const body = [
+    wordParagraph(title, 'Title'),
+    ...pages.flatMap((pageText, idx)=>[
+      wordParagraph(`Page ${idx + 1}`, 'Heading1'),
+      wordParagraph(pageText || L('pdfNoText'))
+    ])
+  ].join('');
+  const documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr></w:body></w:document>`;
+  zip.folder('word').file('document.xml', documentXml);
+  return zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+}
+async function pdfExportOne(item){
+  pdfWithStatus(L('pdfConverting'));
+  const pages = await extractPdfText(item.file);
+  if (!pages.some(p=>p && p.trim())) throw new Error(L('pdfNoText'));
+  const name = `${pdfBaseName(item.name)}.docx`;
+  const blob = await makeDocxBlob(pdfBaseName(item.name), pages);
+  const href = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.download = name;
+  a.href = href;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(href), 1000);
+  await recordExport({ name, type: 'pdf->docx', size: { pages: pages.length } });
+  logEvent('export.pdf', { name, pages: pages.length });
+  return name;
+}
+async function pdfDownloadSingle(){
+  if (!(pdfItems.length && pdfIndex >= 0)){ alert(L('alertPickPdf')); return; }
+  try{
+    TitleStatus.start(currentLang === 'en' ? 'Converting' : 'Konvertiere');
+    const name = await pdfExportOne(pdfItems[pdfIndex]);
+    pdfWithStatus(L('exportOneDone', { name }));
+    showToast(localText(`Exportiert: ${name}`, `Exported: ${name}`), 'success');
+  }catch(err){
+    console.error(err);
+    pdfWithStatus(err.message || L('exportFailed'));
+    showToast(err.message || L('exportFailed'), 'error');
+  }finally{ TitleStatus.stop(); }
+}
+async function pdfDownloadAll(){
+  if (!pdfItems.length){ alert(L('alertLoadPdfs')); return; }
+  TitleStatus.start(currentLang === 'en' ? 'Converting' : 'Konvertiere');
+  let ok = 0;
+  for (const it of pdfItems){
+    try{ await pdfExportOne(it); ok++; }
+    catch(err){ console.warn('PDF export failed:', it.name, err); }
+  }
+  pdfWithStatus(L('exportCompleted', { ok, total: pdfItems.length }));
+  showToast(localText(`${ok}/${pdfItems.length} PDFs exportiert.`, `${ok}/${pdfItems.length} PDFs exported.`), ok === pdfItems.length ? 'success' : 'info');
+  logEvent('export.pdf.all', { ok, total: pdfItems.length });
+  TitleStatus.stop();
+}
+function pdfHandleFiles(fileList){
+  if (!fileList || !fileList.length) return;
+  const files = Array.from(fileList).filter(f => /\.pdf$/i.test(f.name) || f.type === 'application/pdf');
+  if (!files.length){ pdfWithStatus(L('invalidPdfs')); return; }
+  const wasEmpty = pdfItems.length === 0;
+  pdfItems = pdfItems.concat(files.map(f=>({ name: f.name, file: f })));
+  pdfWithStatus(L('pdfLoadedNTotal', { n: files.length, total: pdfItems.length }));
+  showToast(localText(`${files.length} PDF(s) geladen.`, `${files.length} PDF(s) loaded.`), 'success');
+  refreshPdfList();
+  if (wasEmpty) pdfSelect(0);
+}
+if (pdfFileInput) pdfFileInput.addEventListener('change', e=>{
+  const files = Array.from((e.target && e.target.files) ? e.target.files : []);
+  pdfFileInput.value = '';
+  if (files.length) pdfHandleFiles(files);
+});
+if (openPdfPickerBtn && !openPdfPickerBtn.dataset.bound){ openPdfPickerBtn.dataset.bound='1'; openPdfPickerBtn.addEventListener('click', ()=> pdfFileInput && pdfFileInput.click()); }
+if (pdfDropzone){
+  pdfDropzone.addEventListener('dragenter', (e)=>{ e.preventDefault(); pdfDropzone.classList.add('dragover'); setDropzoneState(pdfDropzone, true); });
+  pdfDropzone.addEventListener('dragover',  (e)=>{ e.preventDefault(); pdfDropzone.classList.add('dragover'); setDropzoneState(pdfDropzone, true); });
+  pdfDropzone.addEventListener('dragleave', (e)=>{ e.preventDefault(); pdfDropzone.classList.remove('dragover'); setDropzoneState(pdfDropzone, false); });
+  pdfDropzone.addEventListener('drop',      (e)=>{ e.preventDefault(); pdfDropzone.classList.remove('dragover'); setDropzoneState(pdfDropzone, false); const dt = e.dataTransfer; if (dt && dt.files) pdfHandleFiles(dt.files); });
+}
+if (pdfClearBtn) pdfClearBtn.addEventListener('click', ()=>{ pdfItems = []; pdfIndex = -1; refreshPdfList(); pdfWithStatus(L('listCleared')); });
+if (pdfBtnDocx) pdfBtnDocx.addEventListener('click', pdfDownloadSingle);
+if (pdfBtnAllDocx) pdfBtnAllDocx.addEventListener('click', pdfDownloadAll);
+setPdfButtonsEnabled(false);
 
 // ===== YouTube thumbnails =====
 const ytUrlInput = document.getElementById('ytUrl');

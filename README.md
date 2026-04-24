@@ -2,12 +2,13 @@
 
 Browser-based tool for creating, converting, and exporting thumbnail-ready images.
 
-The app supports SVG to PNG export, PNG/JPG conversion, YouTube thumbnail loading, local export history, presets, theme/language switching, and a polished client-side UI. Most features work directly in the browser; the optional local server improves YouTube thumbnail download handling through a small proxy route.
+The app supports SVG to PNG export, PNG/JPG conversion, PDF to DOCX conversion, YouTube thumbnail loading, local export history, presets, theme/language switching, and a polished client-side UI. Most features work directly in the browser; the optional local server improves YouTube thumbnail download handling through a small proxy route.
 
 ## Features
 
 - SVG to PNG export
 - PNG/JPG conversion with contain, cover, and stretch modes
+- PDF to DOCX conversion with text extraction
 - Named output presets
   - Original
   - YouTube Thumbnail
@@ -84,6 +85,12 @@ http://localhost:5173
 2. Choose an item from the list.
 3. Export as PNG or JPG.
 4. Optionally load an image from a direct URL.
+
+### PDF to DOCX
+
+1. Select PDF files or drag them into the PDF area.
+2. Choose an item from the list.
+3. Export the selected PDF or all loaded PDFs as DOCX files.
 
 ### YouTube Thumbnails
 
@@ -176,6 +183,7 @@ Required browser capabilities include:
 
 - Without the local server, some YouTube download actions fall back to opening direct image URLs in tabs.
 - External image URLs may fail because of CORS restrictions.
+- PDF to DOCX conversion extracts text content. Scanned/image-only PDFs need OCR first.
 - The admin/auth system is client-side only and should not be treated as secure backend authentication.
 - Transparency removal is color-key based, so results depend on how close the image background is to the selected color.
 
@@ -194,4 +202,3 @@ Required browser capabilities include:
 Provided as-is, without warranty.
 
 - Mr_Simple
-
