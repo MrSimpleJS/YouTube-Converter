@@ -61,6 +61,7 @@
               <li><button id="svgMenuDownload2x" class="menu-item" type="button" data-action="download2x">Download PNG @2x</button></li>
               <li><button id="svgMenuDownloadAll" class="menu-item" type="button" data-action="downloadAll">Alle exportieren (PNG)</button></li>
               <li><button id="svgMenuDownloadAll2x" class="menu-item" type="button" data-action="downloadAll2x">Alle exportieren @2x</button></li>
+              <li><button id="svgMenuDownloadZip" class="menu-item" type="button" data-action="downloadAllZip">Alle als ZIP</button></li>
               <li><button id="svgMenuClear" class="menu-item danger" type="button" data-action="clearList">Liste leeren</button></li>
             </ul>
           </div>
@@ -80,6 +81,7 @@
         <div class="controls actions">
           <button class="btn" id="downloadAll" type="button">Alle exportieren (PNG)</button>
           <button class="btn secondary" id="downloadAll2x" type="button">Alle exportieren @2x</button>
+          <button class="btn ghost" id="downloadAllZip" type="button">Alle als ZIP</button>
         </div>
         <div class="controls actions">
           <button class="btn danger" id="clearList" type="button">Liste leeren</button>
@@ -109,6 +111,7 @@
               <li><button id="rMenuSingleJPG" class="menu-item" type="button" data-action="rDownloadJPG">Zu JPG (einzeln)</button></li>
               <li><button id="rMenuAllPNG" class="menu-item" type="button" data-action="rDownloadAllPNG">Alle → PNG</button></li>
               <li><button id="rMenuAllJPG" class="menu-item" type="button" data-action="rDownloadAllJPG">Alle → JPG</button></li>
+              <li><button id="rMenuAllZip" class="menu-item" type="button" data-action="rDownloadAllZip">Alle als ZIP</button></li>
               <li><button id="rMenuClear" class="menu-item danger" type="button" data-action="rClearList">Liste leeren</button></li>
             </ul>
           </div>
@@ -129,6 +132,7 @@
         <div class="controls actions">
           <button class="btn" id="rDownloadAllPNG" type="button">Alle → PNG</button>
           <button class="btn secondary" id="rDownloadAllJPG" type="button">Alle → JPG</button>
+          <button class="btn ghost" id="rDownloadAllZip" type="button">Alle als ZIP</button>
         </div>
 
         <div class="controls">
@@ -169,7 +173,7 @@
         <div class="card-header">
           <h3 id="pdfCardTitle" style="margin:0">PDF zu DOCX</h3>
           <div class="kebab-wrap">
-            <button class="kebab-toggle" type="button" aria-label="Aktionen" aria-expanded="false" data-menu="pdfMenu">â‹¯</button>
+            <button class="kebab-toggle" type="button" aria-label="Aktionen" aria-expanded="false" data-menu="pdfMenu">⋯</button>
             <ul id="pdfMenu" class="kebab-menu" role="menu" aria-label="PDF Aktionen">
               <li><button id="pdfMenuDownload" class="menu-item" type="button" data-action="pdfDownloadDocx">Zu DOCX (einzeln)</button></li>
               <li><button id="pdfMenuDownloadAll" class="menu-item" type="button" data-action="pdfDownloadAllDocx">Alle zu DOCX</button></li>
@@ -177,11 +181,11 @@
             </ul>
           </div>
         </div>
-        <div class="dropzone" id="pdfDropzone" aria-label="PDFs hier ablegen oder Ã¼ber Datei auswÃ¤hlen">
+        <div class="dropzone" id="pdfDropzone" aria-label="PDFs hier ablegen oder über Datei auswählen">
           <input class="visually-hidden" type="file" id="pdfFile" accept=".pdf,application/pdf" multiple/>
           <div class="picker">
-            <button id="openPdfPicker" class="pill" type="button" aria-controls="pdfFile">ðŸ“ PDFs auswÃ¤hlen</button>
-            <span id="pdfSelectedInfo" class="meta">Keine ausgewÃ¤hlt</span>
+            <button id="openPdfPicker" class="pill" type="button" aria-controls="pdfFile">📁 PDFs auswählen</button>
+            <span id="pdfSelectedInfo" class="meta">Keine ausgewählt</span>
           </div>
           <p id="pdfDropHint" class="muted" style="margin:8px 6px 0">Oder per Drag & Drop hier ablegen.</p>
         </div>
@@ -194,6 +198,93 @@
         </div>
         <p id="pdfStatus" class="muted status" aria-live="polite">Keine PDFs geladen.</p>
         <ul id="pdfFileList" class="file-list" aria-label="Geladene PDFs"></ul>
+      </div>
+    </div>
+
+    <!-- Extra Tools -->
+    <div class="row" style="margin-top:20px">
+      <div class="card feature-card tool-card" style="min-width:280px;flex:1 1 340px">
+        <div class="card-header">
+          <h3 id="qrCardTitle" style="margin:0">QR-Code Generator</h3>
+        </div>
+        <div class="controls">
+          <textarea id="qrInput" class="input tool-textarea" rows="4" placeholder="URL oder Text eingeben"></textarea>
+        </div>
+        <div class="controls">
+          <button class="btn" id="qrGenerate" type="button">QR erstellen</button>
+          <button class="btn secondary" id="qrDownloadPng" type="button">PNG</button>
+          <button class="btn ghost" id="qrDownloadSvg" type="button">SVG</button>
+        </div>
+        <div id="qrPreview" class="tool-preview" aria-label="QR Vorschau"></div>
+        <p id="qrStatus" class="muted status" aria-live="polite">Bereit.</p>
+      </div>
+
+      <div class="card feature-card tool-card" style="min-width:280px;flex:1 1 340px">
+        <div class="card-header">
+          <h3 id="docxPdfTitle" style="margin:0">DOCX zu PDF</h3>
+        </div>
+        <div class="dropzone" id="docxDropzone" aria-label="DOCX hier ablegen oder auswählen">
+          <input class="visually-hidden" type="file" id="docxFile" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"/>
+          <div class="picker">
+            <button id="openDocxPicker" class="pill" type="button" aria-controls="docxFile">DOCX auswählen</button>
+            <span id="docxSelectedInfo" class="meta">Keine ausgewählt</span>
+          </div>
+          <p class="muted">Oder per Drag & Drop hier ablegen.</p>
+        </div>
+        <div class="controls">
+          <button class="btn" id="docxToPdf" type="button">PDF exportieren</button>
+        </div>
+        <p id="docxStatus" class="muted status" aria-live="polite">Keine DOCX geladen.</p>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:20px">
+      <div class="card feature-card tool-card" style="min-width:280px;flex:1 1 520px">
+        <div class="card-header">
+          <h3 id="pdfImageTitle" style="margin:0">PDF zu JPG/PNG</h3>
+        </div>
+        <div class="controls">
+          <label class="field compact-field">
+            <span class="muted">Format</span>
+            <select id="pdfImageFormat" class="input">
+              <option value="png">PNG</option>
+              <option value="jpg">JPG</option>
+            </select>
+          </label>
+          <label class="field compact-field">
+            <span class="muted">Skalierung</span>
+            <select id="pdfImageScale" class="input">
+              <option value="1.5">1.5x</option>
+              <option value="2">2x</option>
+              <option value="3">3x</option>
+            </select>
+          </label>
+        </div>
+        <div class="controls">
+          <button class="btn" id="pdfImageCurrent" type="button">Aktuelles PDF als Bilder</button>
+          <button class="btn secondary" id="pdfImageAllZip" type="button">Alle PDFs als ZIP</button>
+        </div>
+        <p id="pdfImageStatus" class="muted status" aria-live="polite">Nutze die PDF-Liste oben.</p>
+      </div>
+
+      <div class="card feature-card tool-card" style="min-width:280px;flex:1 1 520px">
+        <div class="card-header">
+          <h3 id="videoToolTitle" style="margin:0">Video Mini-Tools</h3>
+        </div>
+        <div class="dropzone" id="videoDropzone" aria-label="Video hier ablegen oder auswählen">
+          <input class="visually-hidden" type="file" id="videoFile" accept="video/mp4,video/webm,video/quicktime"/>
+          <div class="picker">
+            <button id="openVideoPicker" class="pill" type="button" aria-controls="videoFile">Video auswählen</button>
+            <span id="videoSelectedInfo" class="meta">Keine ausgewählt</span>
+          </div>
+          <p class="muted">Thumbnail aus MP4/WebM/MOV extrahieren.</p>
+        </div>
+        <video id="videoPreview" class="video-preview" controls hidden></video>
+        <div class="controls">
+          <button class="btn" id="videoCaptureThumb" type="button">Thumbnail extrahieren</button>
+          <button class="btn secondary" id="videoDownloadThumb" type="button">PNG herunterladen</button>
+        </div>
+        <p id="videoStatus" class="muted status" aria-live="polite">MP4 zu MP3 braucht FFmpeg oder ein Backend; Thumbnail-Export läuft lokal.</p>
       </div>
     </div>
 
@@ -243,6 +334,15 @@
           <label class="field">
             <span id="workerLabel" class="muted">Batch mit Web Worker</span>
             <label class="switch"><input type="checkbox" id="optWorker"> <span id="workerToggleLabel">aktivieren</span></label>
+          </label>
+          <label class="field">
+            <span id="themeSchemeLabel" class="muted">Farbschema</span>
+            <select id="themeScheme" class="input custom-select-native" hidden aria-hidden="true" tabindex="-1">
+              <option value="default">Default</option>
+              <option value="ocean">Ocean</option>
+              <option value="berry">Berry</option>
+              <option value="mono">Mono</option>
+            </select>
           </label>
         </div>
   <p id="saveHint" class="muted" style="margin-top:8px">Änderungen werden gespeichert.</p>
@@ -410,6 +510,9 @@
   </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="./app.js"></script>
 </body>
 </html>

@@ -697,7 +697,7 @@ t.de.ytPopupBlocked = 'Popup blockiert. Bitte Popups erlauben und erneut versuch
 t.en.ytPopupBlocked = 'Popup blocked. Please allow popups and try again.';
 t.de.ytDoneOpenedBlocked = 'Fertig: {ok}/{total} geöffnet. {blocked} durch Popup-Blocker verhindert.';
 t.en.ytDoneOpenedBlocked = 'Done: {ok}/{total} opened. {blocked} blocked by the popup blocker.';
-t.de.openPdfPicker = 'PDFs auswÃ¤hlen';
+t.de.openPdfPicker = 'PDFs auswählen';
 t.en.openPdfPicker = 'Select PDFs';
 t.de.pdfDownloadDocx = 'Zu DOCX (einzeln)';
 t.en.pdfDownloadDocx = 'To DOCX (single)';
@@ -709,22 +709,24 @@ t.de.pdfStatusNone = 'Keine PDFs geladen.';
 t.en.pdfStatusNone = 'No PDFs loaded.';
 t.de.pdfLoadedNTotal = '{n} PDF(s) geladen. Insgesamt: {total}.';
 t.en.pdfLoadedNTotal = '{n} PDF(s) loaded. Total: {total}.';
-t.de.selectedPdf = 'AusgewÃ¤hlt: {name} ({index}/{total})';
+t.de.selectedPdf = 'Ausgewählt: {name} ({index}/{total})';
 t.en.selectedPdf = 'Selected: {name} ({index}/{total})';
-t.de.invalidPdfs = 'Keine gÃ¼ltigen PDFs gefunden.';
+t.de.invalidPdfs = 'Keine gültigen PDFs gefunden.';
 t.en.invalidPdfs = 'No valid PDFs found.';
-t.de.pdfDepsMissing = 'PDF-Konverter konnte nicht geladen werden. Bitte Internetverbindung prÃ¼fen.';
+t.de.pdfDepsMissing = 'PDF-Konverter konnte nicht geladen werden. Bitte Internetverbindung prüfen.';
 t.en.pdfDepsMissing = 'PDF converter could not load. Please check your internet connection.';
 t.de.pdfConverting = 'Konvertiere PDF zu DOCX...';
 t.en.pdfConverting = 'Converting PDF to DOCX...';
 t.de.pdfNoText = 'Kein Text im PDF gefunden.';
 t.en.pdfNoText = 'No text found in the PDF.';
-t.de.alertPickPdf = 'Bitte zuerst ein PDF laden und auswÃ¤hlen.';
+t.de.alertPickPdf = 'Bitte zuerst ein PDF laden und auswählen.';
 t.en.alertPickPdf = 'Please load and select a PDF first.';
 t.de.alertLoadPdfs = 'Bitte zuerst PDFs laden.';
 t.en.alertLoadPdfs = 'Please load PDFs first.';
-t.de.historyTypeLabel['pdf->docx'] = 'PDF â†’ DOCX';
-t.en.historyTypeLabel['pdf->docx'] = 'PDF â†’ DOCX';
+t.de.historyTypeLabel['pdf->docx'] = 'PDF → DOCX';
+t.en.historyTypeLabel['pdf->docx'] = 'PDF → DOCX';
+t.de.themeSchemeLabel = 'Farbschema';
+t.en.themeSchemeLabel = 'Color scheme';
 function L(key, vars){
   const dict = t[currentLang] || t.de;
   let s = dict[key];
@@ -778,6 +780,7 @@ function applyLang(lang){
   setText('jpgQLabel', dict.jpgQLabel);
   setText('workerLabel', dict.workerLabel);
   setText('workerToggleLabel', dict.workerToggleLabel);
+  setText('themeSchemeLabel', dict.themeSchemeLabel || 'Farbschema');
   // Buttons
   setText('openPicker', dict.openPicker);
   setText('openRPicker', dict.openRPicker);
@@ -1038,6 +1041,7 @@ const optTransparent = document.getElementById('optTransparent');
 const optJpgQ = document.getElementById('optJpgQ');
 const optPreviewBg = document.getElementById('optPreviewBg');
 const optWorker = document.getElementById('optWorker');
+const optThemeScheme = document.getElementById('themeScheme');
 const saveHint = document.getElementById('saveHint');
 
 const settings = {
@@ -1049,6 +1053,7 @@ const settings = {
   jpgQ: 92,
   worker: false,
   previewBg: true,
+  themeScheme: 'default',
 };
 
 const PRESET_PROFILES = {
@@ -1088,9 +1093,15 @@ function loadSettings(){
   if (optJpgQ) optJpgQ.value = String(settings.jpgQ);
   if (optWorker) optWorker.checked = !!settings.worker;
   if (optPreviewBg) optPreviewBg.checked = !!settings.previewBg;
+  if (optThemeScheme) optThemeScheme.value = settings.themeScheme || 'default';
+  applyThemeScheme(settings.themeScheme || 'default');
   applyChecker();
   updateDimBadge();
   refreshCustomSelects();
+}
+function applyThemeScheme(scheme){
+  const value = ['default','ocean','berry','mono'].includes(String(scheme)) ? String(scheme) : 'default';
+  document.documentElement.setAttribute('data-scheme', value);
 }
 function saveSettings(){
   try{ localStorage.setItem(LS_KEY, JSON.stringify(settings)); }catch(_){}
@@ -1260,7 +1271,7 @@ function initCustomSelect(select){
   refreshCustomSelect(select);
 }
 function refreshCustomSelects(){
-  [optPreset, optMode, historyFilter].forEach(select=>{
+  [optPreset, optMode, historyFilter, optThemeScheme].forEach(select=>{
     if (!select) return;
     if (!customSelectMap.has(select)) initCustomSelect(select);
     refreshCustomSelect(select);
@@ -1906,6 +1917,24 @@ if (dropzone){
 }
 if (clearBtn) clearBtn.addEventListener('click', ()=>{ items = []; currentIndex = -1; ctx.clearRect(0,0,canvas.width,canvas.height); refreshList(); withStatus(L('listCleared')); });
 setButtonsEnabled(false);
+function fileSafeName(name){
+  return String(name || 'export').replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, ' ').trim() || 'export';
+}
+function canvasToBlob(mime='image/png', quality){
+  return new Promise((resolve, reject)=>{
+    try{
+      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Canvas export failed')), mime, quality);
+    }catch(err){ reject(err); }
+  });
+}
+function downloadBlob(blob, name){
+  const href = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.download = name;
+  a.href = href;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(href), 1000);
+}
 async function exportOne(item, scale, suffix=''){
   // SVG path respects preset + mode by first rendering 1280x720 (existing) then scaling if needed
   await renderToCanvas(item.svg, scale);
@@ -1937,10 +1966,32 @@ async function downloadAll(scale, suffix=''){
   logEvent('export.svg.all', { ok: success, total: items.length, scale });
   TitleStatus.stop();
 }
+async function downloadAllZip(scale=1, suffix=''){
+  if (!items.length){ alert(L('alertLoadSVGs')); return; }
+  if (!window.JSZip){ withStatus(L('pdfDepsMissing')); return; }
+  TitleStatus.start(currentLang==='en'?'Zipping':'Packe ZIP');
+  const zip = new window.JSZip();
+  let ok = 0;
+  for (const it of items){
+    try{
+      await renderToCanvas(it.svg, scale);
+      const blob = await canvasToBlob('image/png');
+      zip.file(`${fileSafeName(it.name)}${suffix}.png`, blob);
+      ok++;
+    }catch(err){ console.warn('ZIP SVG export failed:', it.name, err); }
+  }
+  const blob = await zip.generateAsync({ type:'blob' });
+  downloadBlob(blob, `svg-export${suffix || ''}.zip`);
+  withStatus(L('exportCompleted', { ok, total: items.length }));
+  showToast(localText(`${ok}/${items.length} SVG als ZIP exportiert.`, `${ok}/${items.length} SVG exported as ZIP.`), ok === items.length ? 'success' : 'info');
+  logEvent('export.svg.zip', { ok, total: items.length, scale });
+  TitleStatus.stop();
+}
 const btn1 = document.getElementById('download'); if (btn1 && !btn1.dataset.bound){ btn1.dataset.bound='1'; btn1.addEventListener('click', ()=>download(1,'')); }
 const btn2 = document.getElementById('download2x'); if (btn2 && !btn2.dataset.bound){ btn2.dataset.bound='1'; btn2.addEventListener('click', ()=>download(2,'@2x')); }
 const btn3 = document.getElementById('downloadAll'); if (btn3 && !btn3.dataset.bound){ btn3.dataset.bound='1'; btn3.addEventListener('click', ()=>downloadAll(1,'')); }
 const btn4 = document.getElementById('downloadAll2x'); if (btn4 && !btn4.dataset.bound){ btn4.dataset.bound='1'; btn4.addEventListener('click', ()=>downloadAll(2,'@2x')); }
+const btnZip = document.getElementById('downloadAllZip'); if (btnZip && !btnZip.dataset.bound){ btnZip.dataset.bound='1'; btnZip.addEventListener('click', ()=>downloadAllZip(1,'')); }
 
 // Delegated click fallback: ensures buttons work even if direct handlers didn't attach
 document.addEventListener('click', (e)=>{
@@ -1957,11 +2008,13 @@ document.addEventListener('click', (e)=>{
       case 'download2x': e.preventDefault(); download(2,'@2x'); break;
       case 'downloadAll': e.preventDefault(); downloadAll(1,''); break;
       case 'downloadAll2x': e.preventDefault(); downloadAll(2,'@2x'); break;
+      case 'downloadAllZip': e.preventDefault(); downloadAllZip(1,''); break;
       case 'clearList': e.preventDefault(); if (clearBtn && !clearBtn.disabled) clearBtn.click(); break;
       case 'rDownloadPNG': e.preventDefault(); rDownloadSingle('png'); break;
       case 'rDownloadJPG': e.preventDefault(); rDownloadSingle('jpg'); break;
       case 'rDownloadAllPNG': e.preventDefault(); rDownloadAll('png'); break;
       case 'rDownloadAllJPG': e.preventDefault(); rDownloadAll('jpg'); break;
+      case 'rDownloadAllZip': e.preventDefault(); rDownloadAllZip(); break;
       case 'rClearList': e.preventDefault(); if (rClearBtn && !rClearBtn.disabled) rClearBtn.click(); break;
       case 'pdfDownloadDocx': e.preventDefault(); pdfDownloadSingle(); break;
       case 'pdfDownloadAllDocx': e.preventDefault(); pdfDownloadAll(); break;
@@ -1981,11 +2034,13 @@ document.addEventListener('click', (e)=>{
     case 'download2x': e.preventDefault(); download(2,'@2x'); break;
     case 'downloadAll': e.preventDefault(); downloadAll(1,''); break;
     case 'downloadAll2x': e.preventDefault(); downloadAll(2,'@2x'); break;
+    case 'downloadAllZip': e.preventDefault(); downloadAllZip(1,''); break;
     case 'clearList': e.preventDefault(); if (clearBtn && !clearBtn.disabled) clearBtn.click(); break;
     case 'rDownloadPNG': e.preventDefault(); rDownloadSingle('png'); break;
     case 'rDownloadJPG': e.preventDefault(); rDownloadSingle('jpg'); break;
     case 'rDownloadAllPNG': e.preventDefault(); rDownloadAll('png'); break;
     case 'rDownloadAllJPG': e.preventDefault(); rDownloadAll('jpg'); break;
+    case 'rDownloadAllZip': e.preventDefault(); rDownloadAllZip(); break;
     case 'loadFromUrl': e.preventDefault(); loadImageFromUrlToList(); break;
     case 'rClearList': e.preventDefault(); if (rClearBtn && !rClearBtn.disabled) rClearBtn.click(); break;
     case 'pdfDownloadDocx': e.preventDefault(); pdfDownloadSingle(); break;
@@ -2044,13 +2099,14 @@ const rBtnSinglePNG = document.getElementById('rDownloadPNG');
 const rBtnSingleJPG = document.getElementById('rDownloadJPG');
 const rBtnAllPNG = document.getElementById('rDownloadAllPNG');
 const rBtnAllJPG = document.getElementById('rDownloadAllJPG');
+const rBtnAllZip = document.getElementById('rDownloadAllZip');
 const urlInput = document.getElementById('urlInput');
 const loadFromUrlBtn = document.getElementById('loadFromUrl');
 let rItems = []; // {name: string, url: string, type: string, revoke?: boolean}
 let rIndex = -1;
 let hasPreview = false;
 let lastPreviewName = '';
-function setRButtonsEnabled(enabled){ [rBtnSinglePNG, rBtnSingleJPG, rBtnAllPNG, rBtnAllJPG, rClearBtn].forEach(b=>{ if(b) b.disabled = !enabled; }); }
+function setRButtonsEnabled(enabled){ [rBtnSinglePNG, rBtnSingleJPG, rBtnAllPNG, rBtnAllJPG, rBtnAllZip, rClearBtn].forEach(b=>{ if(b) b.disabled = !enabled; }); }
 function rWithStatus(msg){ if(rStatusEl) rStatusEl.textContent = msg; }
 function rBaseName(name){ return (name || 'image').replace(/\.[^.]+$/, ''); }
 function rEnsureUnique(base, taken){ let n = base, i=2; while(taken.has(n)) n = `${base} (${i++})`; taken.add(n); return n; }
@@ -2165,6 +2221,33 @@ async function rExportOne(item, target){
     img.onerror = reject; img.src = item.url;
   });
 }
+async function rExportBlob(item, target){
+  await new Promise((resolve, reject)=>{
+    const img = new Image();
+    img.onload = ()=>{
+      try{
+        const preset = parsePreset(settings.preset);
+        const tW = preset ? preset.w : (img.naturalWidth || img.width);
+        const tH = preset ? preset.h : (img.naturalHeight || img.height);
+        canvas.width = tW; canvas.height = tH;
+        if (target === 'jpg'){
+          ctx.fillStyle = settings.jpgBg || '#ffffff';
+          ctx.fillRect(0,0,canvas.width,canvas.height);
+        } else {
+          ctx.clearRect(0,0,canvas.width,canvas.height);
+        }
+        if (preset) drawFitted(img, tW, tH, settings.mode || 'contain');
+        else ctx.drawImage(img, 0, 0);
+        if (target !== 'jpg') applyTransparencyToCanvas(ctx, canvas.width, canvas.height);
+        resolve();
+      }catch(e){ reject(e); }
+    };
+    img.onerror = reject; img.src = item.url;
+  });
+  const mime = target === 'jpg' ? 'image/jpeg' : 'image/png';
+  const quality = target === 'jpg' ? (settings.jpgQ||92)/100 : undefined;
+  return canvasToBlob(mime, quality);
+}
 async function rDownloadSingle(target){
   if (!(rItems.length && rIndex>=0)) {
     // Fallback: export from current preview if available
@@ -2196,6 +2279,27 @@ async function rDownloadAll(target){
   rWithStatus(L('exportCompleted', { ok, total: rItems.length }));
   showToast(localText(`${ok}/${rItems.length} Bilder exportiert.`, `${ok}/${rItems.length} images exported.`), ok === rItems.length ? 'success' : 'info');
   logEvent('export.raster.all', { ok, total: rItems.length, target });
+}
+async function rDownloadAllZip(){
+  if (!rItems.length){ alert(L('alertLoadImages')); return; }
+  if (!window.JSZip){ rWithStatus(L('pdfDepsMissing')); return; }
+  const target = 'png';
+  TitleStatus.start(currentLang==='en'?'Zipping':'Packe ZIP');
+  const zip = new window.JSZip();
+  let ok = 0;
+  for (const it of rItems){
+    try{
+      const blob = await rExportBlob(it, target);
+      zip.file(`${fileSafeName(it.name)}.${target}`, blob);
+      ok++;
+    }catch(e){ console.warn('Raster ZIP export failed:', it.name, e); }
+  }
+  const blob = await zip.generateAsync({ type:'blob' });
+  downloadBlob(blob, 'image-export.zip');
+  rWithStatus(L('exportCompleted', { ok, total: rItems.length }));
+  showToast(localText(`${ok}/${rItems.length} Bilder als ZIP exportiert.`, `${ok}/${rItems.length} images exported as ZIP.`), ok === rItems.length ? 'success' : 'info');
+  logEvent('export.raster.zip', { ok, total: rItems.length, target });
+  TitleStatus.stop();
 }
 async function loadImageFromUrlToList(){
   const url = (urlInput && urlInput.value || '').trim();
@@ -2249,6 +2353,7 @@ if (rBtnSinglePNG) rBtnSinglePNG.addEventListener('click', ()=> rDownloadSingle(
 if (rBtnSingleJPG) rBtnSingleJPG.addEventListener('click', ()=> rDownloadSingle('jpg'));
 if (rBtnAllPNG) rBtnAllPNG.addEventListener('click', ()=> rDownloadAll('png'));
 if (rBtnAllJPG) rBtnAllJPG.addEventListener('click', ()=> rDownloadAll('jpg'));
+if (rBtnAllZip) rBtnAllZip.addEventListener('click', rDownloadAllZip);
 setRButtonsEnabled(false);
 
 // ===== PDF to DOCX converter =====
@@ -2411,6 +2516,211 @@ if (pdfClearBtn) pdfClearBtn.addEventListener('click', ()=>{ pdfItems = []; pdfI
 if (pdfBtnDocx) pdfBtnDocx.addEventListener('click', pdfDownloadSingle);
 if (pdfBtnAllDocx) pdfBtnAllDocx.addEventListener('click', pdfDownloadAll);
 setPdfButtonsEnabled(false);
+
+// ===== Extra converter tools =====
+const qrInput = document.getElementById('qrInput');
+const qrGenerateBtn = document.getElementById('qrGenerate');
+const qrDownloadPngBtn = document.getElementById('qrDownloadPng');
+const qrDownloadSvgBtn = document.getElementById('qrDownloadSvg');
+const qrPreview = document.getElementById('qrPreview');
+const qrStatus = document.getElementById('qrStatus');
+let lastQrText = '';
+function toolStatus(el, msg){ if (el) el.textContent = msg; }
+function generateQr(){
+  const text = String(qrInput?.value || '').trim();
+  if (!text){ toolStatus(qrStatus, localText('Bitte Text oder URL eingeben.', 'Please enter text or a URL.')); return; }
+  if (!window.QRCode){ toolStatus(qrStatus, localText('QR-Bibliothek konnte nicht geladen werden.', 'QR library could not load.')); return; }
+  qrPreview.innerHTML = '';
+  new window.QRCode(qrPreview, { text, width: 220, height: 220, colorDark: '#101820', colorLight: '#ffffff', correctLevel: window.QRCode.CorrectLevel.H });
+  lastQrText = text;
+  toolStatus(qrStatus, localText('QR-Code erstellt.', 'QR code generated.'));
+}
+function qrCanvas(){
+  return qrPreview ? qrPreview.querySelector('canvas') : null;
+}
+function downloadQrPng(){
+  const c = qrCanvas();
+  if (!c){ generateQr(); }
+  const canvasEl = qrCanvas();
+  if (!canvasEl) return;
+  canvasEl.toBlob(blob=>{ if (blob) downloadBlob(blob, 'qr-code.png'); }, 'image/png');
+}
+function downloadQrSvg(){
+  const c = qrCanvas();
+  if (!c){ generateQr(); }
+  const canvasEl = qrCanvas();
+  if (!canvasEl) return;
+  const data = canvasEl.toDataURL('image/png');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 220 220"><title>${escapeXml(lastQrText || 'QR Code')}</title><image width="220" height="220" href="${data}"/></svg>`;
+  downloadBlob(new Blob([svg], { type:'image/svg+xml' }), 'qr-code.svg');
+}
+if (qrGenerateBtn) qrGenerateBtn.addEventListener('click', generateQr);
+if (qrDownloadPngBtn) qrDownloadPngBtn.addEventListener('click', downloadQrPng);
+if (qrDownloadSvgBtn) qrDownloadSvgBtn.addEventListener('click', downloadQrSvg);
+
+const pdfImageFormat = document.getElementById('pdfImageFormat');
+const pdfImageScale = document.getElementById('pdfImageScale');
+const pdfImageCurrentBtn = document.getElementById('pdfImageCurrent');
+const pdfImageAllZipBtn = document.getElementById('pdfImageAllZip');
+const pdfImageStatus = document.getElementById('pdfImageStatus');
+async function renderPdfPageImages(file, format='png', scale=2){
+  pdfEnsureDeps();
+  const data = new Uint8Array(await file.arrayBuffer());
+  const pdf = await window.pdfjsLib.getDocument({ data }).promise;
+  const rendered = [];
+  for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++){
+    const page = await pdf.getPage(pageNum);
+    const viewport = page.getViewport({ scale });
+    const out = document.createElement('canvas');
+    out.width = Math.ceil(viewport.width);
+    out.height = Math.ceil(viewport.height);
+    const outCtx = out.getContext('2d');
+    if (format === 'jpg'){
+      outCtx.fillStyle = '#ffffff';
+      outCtx.fillRect(0,0,out.width,out.height);
+    }
+    await page.render({ canvasContext: outCtx, viewport }).promise;
+    const mime = format === 'jpg' ? 'image/jpeg' : 'image/png';
+    const blob = await new Promise((resolve, reject)=>out.toBlob(b=>b?resolve(b):reject(new Error('PDF page export failed')), mime, .92));
+    rendered.push({ page: pageNum, blob, width: out.width, height: out.height });
+  }
+  return rendered;
+}
+async function pdfImagesToZip(files){
+  if (!files.length){ alert(L('alertLoadPdfs')); return; }
+  if (!window.JSZip){ toolStatus(pdfImageStatus, L('pdfDepsMissing')); return; }
+  const format = (pdfImageFormat?.value || 'png') === 'jpg' ? 'jpg' : 'png';
+  const scale = parseFloat(pdfImageScale?.value || '2') || 2;
+  const zip = new window.JSZip();
+  let ok = 0;
+  toolStatus(pdfImageStatus, localText('PDF-Seiten werden gerendert...', 'Rendering PDF pages...'));
+  TitleStatus.start(currentLang === 'en' ? 'Rendering' : 'Rendere');
+  for (const item of files){
+    try{
+      const pages = await renderPdfPageImages(item.file, format, scale);
+      const folder = zip.folder(fileSafeName(pdfBaseName(item.name)));
+      pages.forEach(p=>folder.file(`page-${String(p.page).padStart(3,'0')}.${format}`, p.blob));
+      ok += pages.length;
+    }catch(err){ console.warn('PDF image export failed:', item.name, err); }
+  }
+  const blob = await zip.generateAsync({ type:'blob' });
+  downloadBlob(blob, `pdf-pages-${format}.zip`);
+  toolStatus(pdfImageStatus, localText(`${ok} Seite(n) exportiert.`, `${ok} page(s) exported.`));
+  showToast(localText(`PDF-Seiten als ZIP exportiert.`, `PDF pages exported as ZIP.`), 'success');
+  logEvent('export.pdf.images.zip', { files: files.length, pages: ok, format, scale });
+  TitleStatus.stop();
+}
+if (pdfImageCurrentBtn) pdfImageCurrentBtn.addEventListener('click', ()=> {
+  if (!(pdfItems.length && pdfIndex >= 0)){ alert(L('alertPickPdf')); return; }
+  pdfImagesToZip([pdfItems[pdfIndex]]);
+});
+if (pdfImageAllZipBtn) pdfImageAllZipBtn.addEventListener('click', ()=> pdfImagesToZip(pdfItems));
+
+const docxFileInput = document.getElementById('docxFile');
+const openDocxPickerBtn = document.getElementById('openDocxPicker');
+const docxDropzone = document.getElementById('docxDropzone');
+const docxSelectedInfo = document.getElementById('docxSelectedInfo');
+const docxToPdfBtn = document.getElementById('docxToPdf');
+const docxStatus = document.getElementById('docxStatus');
+let selectedDocxFile = null;
+function setDocxFile(file){
+  selectedDocxFile = file || null;
+  if (docxSelectedInfo) docxSelectedInfo.textContent = file ? file.name : L('noneSelected');
+  toolStatus(docxStatus, file ? localText(`Ausgewählt: ${file.name}`, `Selected: ${file.name}`) : localText('Keine DOCX geladen.', 'No DOCX loaded.'));
+}
+async function docxToPdf(){
+  if (!selectedDocxFile){ alert(localText('Bitte zuerst eine DOCX laden.', 'Please load a DOCX first.')); return; }
+  if (!window.mammoth || !window.html2pdf){ toolStatus(docxStatus, localText('DOCX/PDF-Bibliothek konnte nicht geladen werden.', 'DOCX/PDF library could not load.')); return; }
+  try{
+    toolStatus(docxStatus, localText('Konvertiere DOCX zu PDF...', 'Converting DOCX to PDF...'));
+    const result = await window.mammoth.convertToHtml({ arrayBuffer: await selectedDocxFile.arrayBuffer() });
+    const wrapper = document.createElement('div');
+    wrapper.className = 'docx-pdf-render';
+    wrapper.style.position = 'fixed';
+    wrapper.style.left = '-10000px';
+    wrapper.style.top = '0';
+    wrapper.innerHTML = result.value || '<p></p>';
+    document.body.appendChild(wrapper);
+    try{
+      await window.html2pdf().set({
+        margin: 12,
+        filename: `${fileSafeName(pdfBaseName(selectedDocxFile.name))}.pdf`,
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      }).from(wrapper).save();
+    }finally{
+      wrapper.remove();
+    }
+    toolStatus(docxStatus, localText('PDF exportiert.', 'PDF exported.'));
+    logEvent('export.docx.pdf', { name: selectedDocxFile.name });
+  }catch(err){
+    console.error(err);
+    toolStatus(docxStatus, localText('DOCX zu PDF fehlgeschlagen.', 'DOCX to PDF failed.'));
+  }
+}
+if (openDocxPickerBtn) openDocxPickerBtn.addEventListener('click', ()=> docxFileInput?.click());
+if (docxFileInput) docxFileInput.addEventListener('change', e=>setDocxFile((e.target.files || [])[0]));
+if (docxDropzone){
+  docxDropzone.addEventListener('dragenter', e=>{ e.preventDefault(); docxDropzone.classList.add('dragover'); });
+  docxDropzone.addEventListener('dragover', e=>{ e.preventDefault(); docxDropzone.classList.add('dragover'); });
+  docxDropzone.addEventListener('dragleave', e=>{ e.preventDefault(); docxDropzone.classList.remove('dragover'); });
+  docxDropzone.addEventListener('drop', e=>{ e.preventDefault(); docxDropzone.classList.remove('dragover'); const file = Array.from(e.dataTransfer?.files || []).find(f=>/\.docx$/i.test(f.name)); if (file) setDocxFile(file); });
+}
+if (docxToPdfBtn) docxToPdfBtn.addEventListener('click', docxToPdf);
+
+const videoFileInput = document.getElementById('videoFile');
+const openVideoPickerBtn = document.getElementById('openVideoPicker');
+const videoDropzone = document.getElementById('videoDropzone');
+const videoSelectedInfo = document.getElementById('videoSelectedInfo');
+const videoPreview = document.getElementById('videoPreview');
+const videoCaptureThumbBtn = document.getElementById('videoCaptureThumb');
+const videoDownloadThumbBtn = document.getElementById('videoDownloadThumb');
+const videoStatus = document.getElementById('videoStatus');
+let videoObjectUrl = '';
+let lastVideoThumbBlob = null;
+function setVideoFile(file){
+  if (videoObjectUrl) URL.revokeObjectURL(videoObjectUrl);
+  lastVideoThumbBlob = null;
+  if (!file){
+    videoObjectUrl = '';
+    if (videoPreview) videoPreview.hidden = true;
+    if (videoSelectedInfo) videoSelectedInfo.textContent = L('noneSelected');
+    return;
+  }
+  videoObjectUrl = URL.createObjectURL(file);
+  if (videoSelectedInfo) videoSelectedInfo.textContent = file.name;
+  if (videoPreview){
+    videoPreview.src = videoObjectUrl;
+    videoPreview.hidden = false;
+    videoPreview.load();
+  }
+  toolStatus(videoStatus, localText(`Video geladen: ${file.name}`, `Video loaded: ${file.name}`));
+}
+async function captureVideoThumb(){
+  if (!videoPreview || !videoPreview.src){ alert(localText('Bitte zuerst ein Video laden.', 'Please load a video first.')); return; }
+  await new Promise(resolve=>{
+    if (videoPreview.readyState >= 2) resolve();
+    else videoPreview.addEventListener('loadeddata', resolve, { once:true });
+  });
+  const out = document.createElement('canvas');
+  out.width = videoPreview.videoWidth || 1280;
+  out.height = videoPreview.videoHeight || 720;
+  out.getContext('2d').drawImage(videoPreview, 0, 0, out.width, out.height);
+  lastVideoThumbBlob = await new Promise((resolve, reject)=>out.toBlob(b=>b?resolve(b):reject(new Error('Thumbnail failed')), 'image/png'));
+  downloadBlob(lastVideoThumbBlob, 'video-thumbnail.png');
+  toolStatus(videoStatus, localText('Thumbnail exportiert.', 'Thumbnail exported.'));
+  logEvent('export.video.thumbnail', { w: out.width, h: out.height });
+}
+if (openVideoPickerBtn) openVideoPickerBtn.addEventListener('click', ()=> videoFileInput?.click());
+if (videoFileInput) videoFileInput.addEventListener('change', e=>setVideoFile((e.target.files || [])[0]));
+if (videoDropzone){
+  videoDropzone.addEventListener('dragenter', e=>{ e.preventDefault(); videoDropzone.classList.add('dragover'); });
+  videoDropzone.addEventListener('dragover', e=>{ e.preventDefault(); videoDropzone.classList.add('dragover'); });
+  videoDropzone.addEventListener('dragleave', e=>{ e.preventDefault(); videoDropzone.classList.remove('dragover'); });
+  videoDropzone.addEventListener('drop', e=>{ e.preventDefault(); videoDropzone.classList.remove('dragover'); const file = Array.from(e.dataTransfer?.files || []).find(f=>/^video\//.test(f.type)); if (file) setVideoFile(file); });
+}
+if (videoCaptureThumbBtn) videoCaptureThumbBtn.addEventListener('click', captureVideoThumb);
+if (videoDownloadThumbBtn) videoDownloadThumbBtn.addEventListener('click', captureVideoThumb);
 
 // ===== YouTube thumbnails =====
 const ytUrlInput = document.getElementById('ytUrl');
@@ -2687,6 +2997,7 @@ function hookSettings(){
   if (optJpgQ) optJpgQ.addEventListener('input', ()=>{ settings.jpgQ = parseInt(optJpgQ.value,10) || 92; saveSettings(); });
   if (optWorker) optWorker.addEventListener('change', ()=>{ settings.worker = !!optWorker.checked; saveSettings(); });
   if (optPreviewBg) optPreviewBg.addEventListener('change', ()=>{ settings.previewBg = !!optPreviewBg.checked; saveSettings(); rerenderPreview(); });
+  if (optThemeScheme) optThemeScheme.addEventListener('change', ()=>{ settings.themeScheme = optThemeScheme.value || 'default'; applyThemeScheme(settings.themeScheme); saveSettings(); });
   if (optJpgQ) optJpgQ.addEventListener('input', ()=>{ rerenderPreview(); });
 }
 

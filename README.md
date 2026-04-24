@@ -9,6 +9,12 @@ The app supports SVG to PNG export, PNG/JPG conversion, PDF to DOCX conversion, 
 - SVG to PNG export
 - PNG/JPG conversion with contain, cover, and stretch modes
 - PDF to DOCX conversion with text extraction
+- PDF page export to PNG/JPG as ZIP
+- DOCX to PDF export based on extracted DOCX HTML/text
+- QR code generator with PNG/SVG download
+- Video thumbnail extraction
+- ZIP download for SVG and raster batch exports
+- Selectable color schemes for the UI
 - Named output presets
   - Original
   - YouTube Thumbnail
@@ -91,6 +97,14 @@ http://localhost:5173
 1. Select PDF files or drag them into the PDF area.
 2. Choose an item from the list.
 3. Export the selected PDF or all loaded PDFs as DOCX files.
+
+### Extra Tools
+
+- Generate QR codes from text or URLs and export as PNG/SVG.
+- Export PDF pages as PNG/JPG files bundled in a ZIP.
+- Convert DOCX files to PDF. Complex Word layouts may not be preserved exactly.
+- Extract a thumbnail from a local video file.
+- Export SVG/raster batches as ZIP archives.
 
 ### YouTube Thumbnails
 
@@ -184,6 +198,8 @@ Required browser capabilities include:
 - Without the local server, some YouTube download actions fall back to opening direct image URLs in tabs.
 - External image URLs may fail because of CORS restrictions.
 - PDF to DOCX conversion extracts text content. Scanned/image-only PDFs need OCR first.
+- DOCX to PDF uses browser-side HTML rendering, so advanced Word formatting can differ.
+- MP4 to MP3 is not included yet because reliable browser-side MP3 conversion needs FFmpeg or a backend.
 - The admin/auth system is client-side only and should not be treated as secure backend authentication.
 - Transparency removal is color-key based, so results depend on how close the image background is to the selected color.
 
